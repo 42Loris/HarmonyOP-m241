@@ -12,9 +12,10 @@ import {
   Hexagon,
   ClipboardCheck,
   UserCircle,
-  LogOut // <-- 1. Add this icon
+  LogOut,
+  ShieldCheck // <-- Added for the Manager Approvals icon
 } from "lucide-react";
-import { signOutAction } from "@/actions/auth"; // <-- 2. Import the action
+import { signOutAction } from "@/actions/auth";
 
 type SidebarProps = {
   userRole: string;
@@ -27,6 +28,7 @@ export default function Sidebar({ userRole, userName, orgName }: SidebarProps) {
 
   const adminNav = [
     { name: "Dashboard", href: "/app/dashboard", icon: LayoutDashboard },
+    { name: "Manager Approvals", href: "/app/requests", icon: ShieldCheck }, // <-- Properly added here!
     { name: "Active Workflows", href: "/app/workflows", icon: Activity },
     { name: "IT Tasks", href: "/app/tasks", icon: CheckSquare },
     { name: "HR Tasks", href: "/app/hr-tasks", icon: ClipboardCheck },
@@ -69,7 +71,6 @@ export default function Sidebar({ userRole, userName, orgName }: SidebarProps) {
         })}
       </nav>
 
-      {/* 3. Updated Profile Area with Logout Button */}
       <div className="border-t border-slate-800 p-4">
         <div className="flex items-center justify-between rounded-md bg-slate-800/50 p-3 border border-slate-700/50">
           <div className="flex items-center gap-3 overflow-hidden">
