@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, CheckCircle2, Clock, Activity, UserPlus } from "lucide-react";
 import Link from "next/link";
 import SyncButton from "@/components/dashboard/SyncButton";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
