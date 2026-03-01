@@ -9,19 +9,17 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { Resend } from "resend";
 
-// Initialize Resend with your API Key from .env.local
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function createHireRequestAction(formData: FormData) {
+  // === FIX: Initialize Resend INSIDE the function! ===
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Unauthorized" };
 
-  // 1. Get the current HR user making the request
   const dbUser = await db.query.users.findFirst({ where: eq(users.authId, user.id) });
   if (!dbUser) return { error: "User not found" };
 
-  // 2. Grab the standard form data
   const profileId = formData.get("profileId") as string;
   const firstName = formData.get("firstName") as string;
   const lastName = formData.get("lastName") as string;
@@ -46,7 +44,7 @@ export async function createHireRequestAction(formData: FormData) {
     return { error: "Missing required fields" };
   }
 
-  // 3. Look up the profile
+  // Look up the profile
   const profile = await db.query.roleProfiles.findFirst({
     where: eq(roleProfiles.id, profileId)
   });
@@ -54,7 +52,7 @@ export async function createHireRequestAction(formData: FormData) {
   if (!profile) return { error: "Profile not found" };
 
   try {
-    // 4. Save the Pending Request to Database
+    // Save the Pending Request to Database
     await db.insert(hireRequests).values({
       orgId: dbUser.orgId,
       profileId,
@@ -70,10 +68,10 @@ export async function createHireRequestAction(formData: FormData) {
       status: "PENDING"
     });
 
-    // 5. Send Email Notification via Resend
+    // Send Email Notification via Resend
     await resend.emails.send({
       from: 'Harmony OP <onboarding@resend.dev>', 
-      to: 'dpangione@online.gibz.ch', 
+      to: 'your-email@gmail.com', // <--- Ensure this is your verified Resend email
       subject: `Action Required: New Hire Approval for ${firstName} ${lastName}`,
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
@@ -87,7 +85,7 @@ export async function createHireRequestAction(formData: FormData) {
             <p style="margin: 0;"><strong>Special Hire:</strong> ${isSpecialHire ? 'Yes' : 'No'}</p>
           </div>
 
-          <a href="http://localhost:3000/app/requests" 
+          <a href="https://harmony-op-m241.vercel.app/app/requests" 
              style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
             Review and Approve
           </a>
@@ -100,7 +98,6 @@ export async function createHireRequestAction(formData: FormData) {
     return { error: "Failed to process request" };
   }
   
-  // 6. Redirect the HR admin to the pending approvals dashboard
   redirect("/app/requests");
 }
 
@@ -112,8 +109,6 @@ export async function approveHireRequestAction(formData: FormData) {
     await db.update(hireRequests)
       .set({ status: "APPROVED", updatedAt: new Date() })
       .where(eq(hireRequests.id, requestId));
-
-    // Microsoft Graph Provisioning logic will go here in the next step!
 
     revalidatePath("/app/requests");
     return { success: true };
