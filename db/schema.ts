@@ -78,6 +78,30 @@ export const profileTasks = pgTable("profile_tasks", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// === NEW: Profile Meetings (Default auto-scheduled Outlook events) ===
+export const profileMeetings = pgTable("profile_meetings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  profileId: uuid("profile_id")
+    .references(() => roleProfiles.id, { onDelete: "cascade" })
+    .notNull(),
+  title: text("title").notNull(), // e.g., "Codebase Architecture Intro"
+  durationMinutes: integer("duration_minutes").notNull().default(60),
+  hostEmail: text("host_email").notNull(), // e.g., "lead.dev@company.com"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// === NEW: Integrations Table ===
+export const organizationIntegrations = pgTable("organization_integrations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  provider: text("provider").notNull(), // e.g., "MICROSOFT_ENTRA"
+  tenantId: text("tenant_id"),
+  clientId: text("client_id"),
+  clientSecret: text("client_secret"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 
 // =====================
 // === RELATIONS ===
@@ -108,6 +132,7 @@ export const roleProfilesRelations = relations(roleProfiles, ({ one, many }) => 
     references: [organizations.id],
   }),
   defaultTasks: many(profileTasks),
+  defaultMeetings: many(profileMeetings), // Linked the new meetings table!
 }));
 
 export const profileTasksRelations = relations(profileTasks, ({ one }) => ({
@@ -117,19 +142,14 @@ export const profileTasksRelations = relations(profileTasks, ({ one }) => ({
   }),
 }));
 
-// === NEW: Integrations Table ===
-export const organizationIntegrations = pgTable("organization_integrations", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: 'cascade' }),
-  provider: text("provider").notNull(), // e.g., "MICROSOFT_ENTRA"
-  tenantId: text("tenant_id"),
-  clientId: text("client_id"),
-  clientSecret: text("client_secret"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+// Add relations mapping for profile meetings
+export const profileMeetingsRelations = relations(profileMeetings, ({ one }) => ({
+  profile: one(roleProfiles, {
+    fields: [profileMeetings.profileId],
+    references: [roleProfiles.id],
+  }),
+}));
 
-// Update the relations for this new table
 export const organizationIntegrationsRelations = relations(organizationIntegrations, ({ one }) => ({
   organization: one(organizations, {
     fields: [organizationIntegrations.orgId],
