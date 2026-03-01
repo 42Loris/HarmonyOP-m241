@@ -77,34 +77,47 @@ export default function NewHireForm({
         </div>
         
         {isSpecialHire && (
-          <div className="grid grid-cols-1 gap-6 pl-7 mt-4 animate-in fade-in slide-in-from-top-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-7 mt-4 animate-in fade-in slide-in-from-top-2">
             
-            {/* Live Microsoft Licenses */}
+            {/* Live Microsoft Licenses (Multi-Select Checklist) */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Microsoft 365 License</label>
-              <select name="msLicense" className="w-full border border-slate-300 rounded-md px-3 py-2 bg-white">
-                <option value="">-- Select License --</option>
-                {msLicenses.map((lic: any) => (
-                  <option key={lic.skuId} value={lic.skuPartNumber}>
-                    {lic.skuPartNumber} (Available: {lic.prepaidUnits?.enabled - lic.consumedUnits})
-                  </option>
-                ))}
-              </select>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Microsoft 365 Licenses (Select multiple)</label>
+              <div className="w-full border border-slate-300 rounded-md bg-white max-h-48 overflow-y-auto p-2 space-y-1">
+                {msLicenses.length === 0 ? (
+                  <p className="text-sm text-slate-500 p-2">No licenses found.</p>
+                ) : (
+                  msLicenses.map((lic: any) => (
+                    <label key={lic.skuId} className="flex items-start gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer transition-colors">
+                      <input type="checkbox" name="msLicenses" value={lic.skuPartNumber} className="mt-1 h-4 w-4 text-blue-600 rounded border-slate-300" />
+                      <span className="text-sm text-slate-700 leading-tight">
+                        {lic.skuPartNumber} <br/>
+                        <span className="text-xs text-slate-400">Available: {lic.prepaidUnits?.enabled - lic.consumedUnits}</span>
+                      </span>
+                    </label>
+                  ))
+                )}
+              </div>
             </div>
 
-            {/* Live Microsoft Groups */}
+            {/* Live Microsoft Groups (Multi-Select Checklist) */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Add to Microsoft Entra Group (SharePoint/Teams)</label>
-              <select name="msGroup" className="w-full border border-slate-300 rounded-md px-3 py-2 bg-white">
-                <option value="">-- Select Group --</option>
-                {msGroups.map((group: any) => (
-                  <option key={group.id} value={group.displayName}>{group.displayName}</option>
-                ))}
-              </select>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Microsoft Entra Groups (Select multiple)</label>
+              <div className="w-full border border-slate-300 rounded-md bg-white max-h-48 overflow-y-auto p-2 space-y-1">
+                {msGroups.length === 0 ? (
+                  <p className="text-sm text-slate-500 p-2">No groups found.</p>
+                ) : (
+                  msGroups.map((group: any) => (
+                    <label key={group.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer transition-colors">
+                      <input type="checkbox" name="msGroups" value={group.displayName} className="h-4 w-4 text-blue-600 rounded border-slate-300" />
+                      <span className="text-sm text-slate-700">{group.displayName}</span>
+                    </label>
+                  ))
+                )}
+              </div>
             </div>
 
             {/* Non-Microsoft Software */}
-            <div className="pt-4 border-t border-slate-200">
+            <div className="col-span-1 md:col-span-2 pt-4 border-t border-slate-200">
               <label className="block text-sm font-medium text-slate-700 mb-1">Other Software Licenses (Manager Approval Required)</label>
               <input type="text" name="otherLicenses" className="w-full border border-slate-300 rounded-md px-3 py-2" placeholder="e.g. Adobe Creative Cloud, Figma, SAP" />
             </div>
@@ -118,6 +131,7 @@ export default function NewHireForm({
           Submit Request for Manager Approval
         </button>
       </div>
+
     </form>
   );
 }

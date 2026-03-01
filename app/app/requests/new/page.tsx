@@ -23,7 +23,7 @@ export default async function NewHireRequestPage() {
 
   let msGroups = [];
   let msLicenses = [];
-  let tenantDomain = integration?.tenantId ? `${integration.tenantId}` : "company.com";
+  let tenantDomain = "company.com"; // Default fallback
 
   // 3. If connected, fetch live data from Graph API
   if (integration?.clientId && integration?.clientSecret) {
@@ -54,15 +54,21 @@ export default async function NewHireRequestPage() {
         });
         const skusData = await skusRes.json();
         msLicenses = skusData.value || [];
+
+        // === NEW: Fetch the Actual Verified Domain Name ===
+        const domainsRes = await fetch(`https://graph.microsoft.com/v1.0/domains`, {
+          headers: { Authorization: `Bearer ${access_token}` },
+        });
+        const domainsData = await domainsRes.json();
+        // Find the one marked as the default for the tenant
+        const defaultDomain = domainsData.value?.find((d: any) => d.isDefault);
+        if (defaultDomain) {
+          tenantDomain = defaultDomain.id;
+        }
       }
     } catch (e) {
       console.error("Failed to fetch Graph data for form");
     }
-  }
-
-  // We extract the base domain name for the email preview
-  if (tenantDomain.includes(".onmicrosoft.com")) {
-    tenantDomain = tenantDomain; // Keep as is for dev tenant
   }
 
   return (

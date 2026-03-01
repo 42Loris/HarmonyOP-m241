@@ -16,7 +16,7 @@ export async function createHireRequestAction(formData: FormData) {
   const dbUser = await db.query.users.findFirst({ where: eq(users.authId, user.id) });
   if (!dbUser) return { error: "User not found" };
 
-  // 2. Grab the form data
+  // 2. Grab the standard form data
   const profileId = formData.get("profileId") as string;
   const firstName = formData.get("firstName") as string;
   const lastName = formData.get("lastName") as string;
@@ -25,19 +25,25 @@ export async function createHireRequestAction(formData: FormData) {
   // Is this a special custom hire?
   const isSpecialHire = formData.get("isSpecialHire") === "on";
   
-  // 2.5 Grab the split fields from our updated UI
-  const msLicense = formData.get("msLicense") as string;
+  // === NEW: Grab Arrays using getAll() for checkboxes ===
+  const msLicensesArray = formData.getAll("msLicenses") as string[]; 
+  const msGroupsArray = formData.getAll("msGroups") as string[];
   const otherLicenses = formData.get("otherLicenses") as string;
-  const requestedGroups = formData.get("msGroup") as string;
 
-  // Combine MS License and Other Licenses into one string for the database
-  const requestedLicenses = [msLicense, otherLicenses].filter(Boolean).join(" | Other: ");
+  // Combine checked MS Licenses and Other Licenses into one readable string
+  const requestedLicenses = [
+    msLicensesArray.length > 0 ? msLicensesArray.join(", ") : null, 
+    otherLicenses ? `Other: ${otherLicenses}` : null
+  ].filter(Boolean).join(" | ");
+
+  // Combine checked MS Groups into a readable string
+  const requestedGroups = msGroupsArray.length > 0 ? msGroupsArray.join(", ") : null;
 
   if (!profileId || !firstName || !lastName || !personalEmail) {
     return { error: "Missing required fields" };
   }
 
-  // 3. Look up the profile to get the job title and department automatically
+  // 3. Look up the profile
   const profile = await db.query.roleProfiles.findFirst({
     where: eq(roleProfiles.id, profileId)
   });
