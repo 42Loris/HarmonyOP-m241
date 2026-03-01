@@ -13,19 +13,16 @@ import { createClient } from "@/utils/supabase/server";
 
 export async function POST(req: Request) {
   try {
-    // Check if this request is coming from our automated Vercel Cron Job
     const authHeader = req.headers.get("authorization");
     const isCronJob = authHeader === `Bearer ${process.env.CRON_SECRET}`;
 
     let integrationsToSync = [];
 
     if (isCronJob) {
-      // 🤖 CRON MODE: Find ALL companies in the database that have Microsoft connected
       integrationsToSync = await db.query.organizationIntegrations.findMany({
         where: eq(organizationIntegrations.provider, "MICROSOFT_ENTRA"),
       });
     } else {
-      // 🧑‍💻 MANUAL MODE: Check the logged-in user and only sync their company
       const supabase = await createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -47,12 +44,11 @@ export async function POST(req: Request) {
     }
 
     let totalNewHiresProcessed = 0;
+    let debugMessages = []; // 🕵️‍♂️ OUR DETECTIVE LOGS
 
-    // Loop through the integrations (either just 1, or all of them if Cron)
     for (const integration of integrationsToSync) {
       if (!integration.tenantId || !integration.clientId || !integration.clientSecret) continue;
 
-      // Trade keys for Microsoft Access Token
       const tokenResponse = await fetch(`https://login.microsoftonline.com/${integration.tenantId}/oauth2/v2.0/token`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -65,42 +61,59 @@ export async function POST(req: Request) {
       });
 
       const tokenData = await tokenResponse.json();
-      if (!tokenData.access_token) continue; 
+      if (!tokenData.access_token) {
+         debugMessages.push(`Auth Failed: No token returned`);
+         continue;
+      }
       const accessToken = tokenData.access_token;
 
-      // Find Role Profiles mapped to Entra ID for this specific organization
       const profiles = await db.query.roleProfiles.findMany({
         where: eq(roleProfiles.orgId, integration.orgId),
         with: { defaultTasks: true },
       });
 
-      const mappedProfiles = profiles.filter(p => p.entraGroupId !== null);
+      // Fix: Account for Drizzle sometimes returning snake_case depending on schema
+      const mappedProfiles = profiles.filter(p => p.entraGroupId !== null || (p as any).entra_group_id !== null);
+      debugMessages.push(`Found ${mappedProfiles.length} mapped profiles`);
 
       for (const profile of mappedProfiles) {
-        const groupRes = await fetch(`https://graph.microsoft.com/v1.0/groups/${profile.entraGroupId}/members`, {
+        const groupId = profile.entraGroupId || (profile as any).entra_group_id;
+
+        const groupRes = await fetch(`https://graph.microsoft.com/v1.0/groups/${groupId.trim()}/members`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
         
-        if (!groupRes.ok) continue;
+        if (!groupRes.ok) {
+          const errText = await groupRes.text();
+          // Log exactly what Microsoft tells us
+          debugMessages.push(`MS Error (${groupRes.status}): ${errText.substring(0, 60)}...`);
+          continue;
+        }
+
         const groupData = await groupRes.json();
-        const members = groupData.value;
+        const members = groupData.value || [];
+        debugMessages.push(`Group has ${members.length} members`);
 
         for (const member of members) {
+          const email = member.mail || member.userPrincipalName;
+          
           const existingUser = await db.query.users.findFirst({
-            where: eq(users.email, member.mail || member.userPrincipalName)
+            where: eq(users.email, email)
           });
 
-          if (!existingUser) {
-            // Create User
+          if (existingUser) {
+            debugMessages.push(`Skipped ${email.split('@')[0]} (already exists)`);
+          } else {
+            debugMessages.push(`Imported ${email.split('@')[0]}`);
+            
             const [newUser] = await db.insert(users).values({
               orgId: integration.orgId,
-              email: member.mail || member.userPrincipalName,
+              email: email,
               name: member.displayName || "Unknown User",
               role: "EMPLOYEE",
               department: profile.department,
             }).returning();
 
-            // Create Workflow
             const [newWorkflow] = await db.insert(onboardingWorkflows).values({
               orgId: integration.orgId,
               newHireId: newUser.id,
@@ -110,8 +123,7 @@ export async function POST(req: Request) {
               startDate: new Date(), 
             }).returning();
 
-            // Create Tasks
-            if (profile.defaultTasks.length > 0) {
+            if (profile.defaultTasks && profile.defaultTasks.length > 0) {
               const tasksToInsert = profile.defaultTasks.map(task => ({
                 workflowId: newWorkflow.id,
                 title: task.title,
@@ -126,9 +138,10 @@ export async function POST(req: Request) {
       }
     }
 
+    // Return the logs directly to the user's screen!
     return NextResponse.json({ 
       success: true, 
-      message: `Sync complete. ${totalNewHiresProcessed} new hires processed.` 
+      message: `Sync complete. ${totalNewHiresProcessed} processed. \n\nLogs: ${debugMessages.join(" | ")}` 
     });
 
   } catch (error) {
