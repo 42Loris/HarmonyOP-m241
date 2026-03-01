@@ -78,15 +78,18 @@ export const profileTasks = pgTable("profile_tasks", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// === NEW: Profile Meetings (Default auto-scheduled Outlook events) ===
 export const profileMeetings = pgTable("profile_meetings", {
   id: uuid("id").primaryKey().defaultRandom(),
   profileId: uuid("profile_id")
     .references(() => roleProfiles.id, { onDelete: "cascade" })
     .notNull(),
-  title: text("title").notNull(), // e.g., "Codebase Architecture Intro"
+  title: text("title").notNull(), 
   durationMinutes: integer("duration_minutes").notNull().default(60),
-  hostEmail: text("host_email").notNull(), // e.g., "lead.dev@company.com"
+  hostEmail: text("host_email").notNull(), 
+  
+  // === NEW: Store external guests as a comma-separated string ===
+  additionalAttendees: text("additional_attendees"), 
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

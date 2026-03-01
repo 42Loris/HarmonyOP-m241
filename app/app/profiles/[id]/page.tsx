@@ -175,6 +175,18 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
             <form action={handleAddMeeting} className="space-y-4">
               <input type="hidden" name="profileId" value={profile.id} />
               <div>
+                {/* Inside the Schedule Meeting Form in page.tsx */}
+              <div>
+                <label className="block text-xs font-medium text-blue-900 mb-1">Host Email (Internal Licensed User)</label>
+                <input type="email" name="hostEmail" required placeholder="manager@yourcompany.com" className="w-full border border-blue-200 rounded-md px-3 py-2 text-sm" />
+              </div>
+              
+              {/* === NEW: Additional Guests Input === */}
+              <div>
+                <label className="block text-xs font-medium text-blue-900 mb-1">External Guests (Optional)</label>
+                <input type="text" name="additionalAttendees" placeholder="sap.expert@external.com, hr@external.com" className="w-full border border-blue-200 rounded-md px-3 py-2 text-sm" />
+                <p className="text-[10px] text-blue-600 mt-1">Separate multiple emails with commas</p>
+              </div>
                 <label className="block text-xs font-medium text-blue-900 mb-1">Meeting Title</label>
                 <input type="text" name="title" required placeholder="e.g. Codebase Intro" className="w-full border border-blue-200 rounded-md px-3 py-2 text-sm" />
               </div>
