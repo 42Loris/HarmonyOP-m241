@@ -6,15 +6,20 @@ import { profileMeetings } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-// Inside actions/profile-meetings.ts
 export async function addProfileMeetingAction(formData: FormData) {
   const profileId = formData.get("profileId") as string;
   const title = formData.get("title") as string;
   const durationMinutes = parseInt(formData.get("durationMinutes") as string) || 60;
   const hostEmail = formData.get("hostEmail") as string;
   
-  // === NEW: Grab the extra attendees ===
-  const additionalAttendees = formData.get("additionalAttendees") as string;
+  // Grab both the internal and external guests
+  const internalGuests = formData.get("internalGuests") as string;
+  const externalGuests = formData.get("externalGuests") as string;
+
+  // Combine them into a single string for the database (ignores empty fields)
+  const combinedGuests = [internalGuests, externalGuests]
+    .filter(email => email && email.trim() !== "")
+    .join(", ");
 
   if (!profileId || !title || !hostEmail) return { error: "Missing fields" };
 
@@ -24,7 +29,7 @@ export async function addProfileMeetingAction(formData: FormData) {
       title,
       durationMinutes,
       hostEmail,
-      additionalAttendees: additionalAttendees || null, // Save it!
+      additionalAttendees: combinedGuests || null,
     });
 
     revalidatePath(`/app/profiles/${profileId}`);

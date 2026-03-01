@@ -4,7 +4,6 @@ import { eq } from "drizzle-orm";
 import { roleProfiles } from "@/db/schema";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-// Added Trash2 to the imports!
 import { ArrowLeft, Plus, Laptop, Users, GraduationCap, ClipboardList, Calendar, Trash2 } from "lucide-react";
 import { addProfileTaskAction, deleteProfileTaskAction } from "@/actions/profile-tasks";
 import { addProfileMeetingAction, deleteProfileMeetingAction } from "@/actions/profile-meetings";
@@ -119,7 +118,10 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
                         <div className="p-2 bg-blue-50 rounded-md"><Calendar className="h-4 w-4 text-blue-600" /></div>
                         <div>
                           <p className="font-medium text-slate-700">{meeting.title}</p>
-                          <p className="text-xs text-slate-500">With: {meeting.hostEmail} • {meeting.durationMinutes} mins</p>
+                          <p className="text-xs text-slate-500">Host: {meeting.hostEmail} • {meeting.durationMinutes} mins</p>
+                          {meeting.additionalAttendees && (
+                            <p className="text-[10px] text-slate-400 mt-0.5">Guests: {meeting.additionalAttendees}</p>
+                          )}
                         </div>
                       </div>
 
@@ -167,33 +169,34 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
             </form>
           </div>
 
-          {/* Add Meeting Form */}
+          {/* Cleaned Up Add Meeting Form */}
           <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-5">
             <h3 className="font-bold text-blue-900 mb-4 flex items-center gap-2">
               <Calendar className="h-4 w-4" /> Schedule Meeting
             </h3>
             <form action={handleAddMeeting} className="space-y-4">
               <input type="hidden" name="profileId" value={profile.id} />
-              <div>
-                {/* Inside the Schedule Meeting Form in page.tsx */}
-              <div>
-                <label className="block text-xs font-medium text-blue-900 mb-1">Host Email (Internal Licensed User)</label>
-                <input type="email" name="hostEmail" required placeholder="manager@yourcompany.com" className="w-full border border-blue-200 rounded-md px-3 py-2 text-sm" />
-              </div>
               
-              {/* === NEW: Additional Guests Input === */}
               <div>
-                <label className="block text-xs font-medium text-blue-900 mb-1">External Guests (Optional)</label>
-                <input type="text" name="additionalAttendees" placeholder="sap.expert@external.com, hr@external.com" className="w-full border border-blue-200 rounded-md px-3 py-2 text-sm" />
-                <p className="text-[10px] text-blue-600 mt-1">Separate multiple emails with commas</p>
-              </div>
                 <label className="block text-xs font-medium text-blue-900 mb-1">Meeting Title</label>
                 <input type="text" name="title" required placeholder="e.g. Codebase Intro" className="w-full border border-blue-200 rounded-md px-3 py-2 text-sm" />
               </div>
+
               <div>
-                <label className="block text-xs font-medium text-blue-900 mb-1">Host Email (Who leads it?)</label>
-                <input type="email" name="hostEmail" required placeholder="lead.dev@company.com" className="w-full border border-blue-200 rounded-md px-3 py-2 text-sm" />
+                <label className="block text-xs font-medium text-blue-900 mb-1">Host Email (Leader)</label>
+                <input type="email" name="hostEmail" required placeholder="leader@yourcompany.com" className="w-full border border-blue-200 rounded-md px-3 py-2 text-sm" />
               </div>
+
+              <div>
+                <label className="block text-xs font-medium text-blue-900 mb-1">Other Internal People (Optional)</label>
+                <input type="text" name="internalGuests" placeholder="dev1@company.com, dev2@company.com" className="w-full border border-blue-200 rounded-md px-3 py-2 text-sm" />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-blue-900 mb-1">External Guests (Optional)</label>
+                <input type="text" name="externalGuests" placeholder="sap.expert@external.com" className="w-full border border-blue-200 rounded-md px-3 py-2 text-sm" />
+              </div>
+
               <div>
                 <label className="block text-xs font-medium text-blue-900 mb-1">Duration (Minutes)</label>
                 <select name="durationMinutes" className="w-full border border-blue-200 rounded-md px-3 py-2 text-sm bg-white">
