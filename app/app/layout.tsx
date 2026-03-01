@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { users } from "@/db/schema";
 import Sidebar from "@/components/layout/Sidebar";
 
+
 export default async function AppLayout({
   children,
 }: {
