@@ -74,3 +74,44 @@ export async function createHireRequestAction(formData: FormData) {
   // 5. Redirect the HR admin to the pending approvals dashboard
   redirect("/app/requests");
 }
+
+// Add this to the bottom of actions/hire-requests.ts
+import { revalidatePath } from "next/cache";
+
+export async function approveHireRequestAction(formData: FormData) {
+  const requestId = formData.get("requestId") as string;
+  if (!requestId) return { error: "Missing ID" };
+
+  try {
+    // 1. Update the status in the database
+    await db.update(hireRequests)
+      .set({ status: "APPROVED", updatedAt: new Date() })
+      .where(eq(hireRequests.id, requestId));
+
+    // NOTE: In the next step, this is exactly where we will trigger 
+    // the Microsoft Graph API to physically create the user!
+
+    revalidatePath("/app/requests");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to approve request:", error);
+    return { error: "Failed to approve" };
+  }
+}
+
+export async function rejectHireRequestAction(formData: FormData) {
+  const requestId = formData.get("requestId") as string;
+  if (!requestId) return { error: "Missing ID" };
+
+  try {
+    await db.update(hireRequests)
+      .set({ status: "REJECTED", updatedAt: new Date() })
+      .where(eq(hireRequests.id, requestId));
+
+    revalidatePath("/app/requests");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to reject request:", error);
+    return { error: "Failed to reject" };
+  }
+}
