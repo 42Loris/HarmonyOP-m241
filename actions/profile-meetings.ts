@@ -3,6 +3,7 @@
 
 import { db } from "@/db";
 import { profileMeetings } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export async function addProfileMeetingAction(formData: FormData) {
@@ -26,5 +27,22 @@ export async function addProfileMeetingAction(formData: FormData) {
   } catch (error) {
     console.error("Failed to add meeting:", error);
     return { error: "Failed to save meeting" };
+  }
+}
+
+export async function deleteProfileMeetingAction(formData: FormData) {
+  const id = formData.get("id") as string;
+  const profileId = formData.get("profileId") as string;
+
+  if (!id || !profileId) return { error: "Missing ID" };
+
+  try {
+    await db.delete(profileMeetings).where(eq(profileMeetings.id, id));
+    
+    revalidatePath(`/app/profiles/${profileId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete meeting:", error);
+    return { error: "Failed to delete meeting" };
   }
 }

@@ -4,14 +4,14 @@ import { eq } from "drizzle-orm";
 import { roleProfiles } from "@/db/schema";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Plus, Laptop, Users, GraduationCap, ClipboardList, Calendar } from "lucide-react";
-import { addProfileTaskAction } from "@/actions/profile-tasks";
-import { addProfileMeetingAction } from "@/actions/profile-meetings";
+// Added Trash2 to the imports!
+import { ArrowLeft, Plus, Laptop, Users, GraduationCap, ClipboardList, Calendar, Trash2 } from "lucide-react";
+import { addProfileTaskAction, deleteProfileTaskAction } from "@/actions/profile-tasks";
+import { addProfileMeetingAction, deleteProfileMeetingAction } from "@/actions/profile-meetings";
 
 export default async function ProfileDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  // Notice we are now fetching defaultMeetings too!
   const profile = await db.query.roleProfiles.findFirst({
     where: eq(roleProfiles.id, id),
     with: {
@@ -42,6 +42,16 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
     await addProfileMeetingAction(formData);
   };
 
+  const handleDeleteTask = async (formData: FormData) => {
+    "use server";
+    await deleteProfileTaskAction(formData);
+  };
+
+  const handleDeleteMeeting = async (formData: FormData) => {
+    "use server";
+    await deleteProfileMeetingAction(formData);
+  };
+
   return (
     <div className="p-8 max-w-6xl mx-auto min-h-screen">
       <div className="mb-6">
@@ -69,14 +79,25 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
               ) : (
                 <ul className="divide-y divide-slate-100">
                   {profile.defaultTasks.map(task => (
-                    <li key={task.id} className="p-4 flex items-center justify-between hover:bg-slate-50">
+                    <li key={task.id} className="p-4 flex items-center justify-between hover:bg-slate-50 group">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-slate-100 rounded-md">{getTaskIcon(task.taskType)}</div>
                         <span className="font-medium text-slate-700">{task.title}</span>
                       </div>
-                      <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
-                        {task.taskType.replace("_", " ")}
-                      </span>
+                      
+                      <div className="flex items-center gap-4">
+                        <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
+                          {task.taskType.replace("_", " ")}
+                        </span>
+                        {/* Delete Task Form */}
+                        <form action={handleDeleteTask}>
+                          <input type="hidden" name="id" value={task.id} />
+                          <input type="hidden" name="profileId" value={profile.id} />
+                          <button type="submit" className="text-slate-300 hover:text-red-500 transition-colors">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </form>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -84,7 +105,7 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
             </div>
           </section>
 
-          {/* NEW: Meetings List */}
+          {/* Meetings List */}
           <section>
             <h2 className="text-lg font-bold text-slate-800 mb-4">Auto-Scheduled Meetings</h2>
             <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
@@ -93,7 +114,7 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
               ) : (
                 <ul className="divide-y divide-slate-100">
                   {profile.defaultMeetings.map(meeting => (
-                    <li key={meeting.id} className="p-4 flex items-center justify-between hover:bg-slate-50">
+                    <li key={meeting.id} className="p-4 flex items-center justify-between hover:bg-slate-50 group">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-blue-50 rounded-md"><Calendar className="h-4 w-4 text-blue-600" /></div>
                         <div>
@@ -101,6 +122,15 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
                           <p className="text-xs text-slate-500">With: {meeting.hostEmail} • {meeting.durationMinutes} mins</p>
                         </div>
                       </div>
+
+                      {/* Delete Meeting Form */}
+                      <form action={handleDeleteMeeting}>
+                        <input type="hidden" name="id" value={meeting.id} />
+                        <input type="hidden" name="profileId" value={profile.id} />
+                        <button type="submit" className="text-slate-300 hover:text-red-500 transition-colors">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </form>
                     </li>
                   ))}
                 </ul>
@@ -137,7 +167,7 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
             </form>
           </div>
 
-          {/* NEW: Add Meeting Form */}
+          {/* Add Meeting Form */}
           <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-5">
             <h3 className="font-bold text-blue-900 mb-4 flex items-center gap-2">
               <Calendar className="h-4 w-4" /> Schedule Meeting
