@@ -24,8 +24,14 @@ export async function createHireRequestAction(formData: FormData) {
   
   // Is this a special custom hire?
   const isSpecialHire = formData.get("isSpecialHire") === "on";
-  const requestedLicenses = formData.get("requestedLicenses") as string;
-  const requestedGroups = formData.get("requestedGroups") as string;
+  
+  // 2.5 Grab the split fields from our updated UI
+  const msLicense = formData.get("msLicense") as string;
+  const otherLicenses = formData.get("otherLicenses") as string;
+  const requestedGroups = formData.get("msGroup") as string;
+
+  // Combine MS License and Other Licenses into one string for the database
+  const requestedLicenses = [msLicense, otherLicenses].filter(Boolean).join(" | Other: ");
 
   if (!profileId || !firstName || !lastName || !personalEmail) {
     return { error: "Missing required fields" };

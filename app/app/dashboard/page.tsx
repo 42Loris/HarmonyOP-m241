@@ -5,7 +5,7 @@ import { users, onboardingWorkflows, organizationIntegrations } from "@/db/schem
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, CheckCircle2, Clock, Activity } from "lucide-react";
+import { Users, CheckCircle2, Clock, Activity, UserPlus } from "lucide-react";
 import Link from "next/link";
 import SyncButton from "@/components/dashboard/SyncButton";
 
@@ -50,25 +50,34 @@ export default async function DashboardPage() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto min-h-screen space-y-8">
-      {/* Updated Header with conditional Sync Button */}
+      {/* Updated Header with conditional Sync Button & New Hire Button */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Welcome back, {dbUser.name.split(" ")[0]}</h1>
           <p className="text-sm text-slate-500 mt-1">Here is what is happening with your onboardings today.</p>
         </div>
         
-        {/* Only show the manual sync button if they have configured the integration */}
-        {hasIntegration && <SyncButton />}
+        <div className="flex items-center gap-3">
+          {/* Only show the manual sync button if they have configured the integration */}
+          {hasIntegration && <SyncButton />}
+          
+          {/* NEW: The HR Request Button */}
+          <Link 
+            href="/app/requests/new" 
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md flex items-center gap-2 text-sm transition-colors"
+          >
+            <UserPlus className="h-4 w-4" />
+            New Hire Request
+          </Link>
+        </div>
       </header>
 
-{/* Top Stats Row - BULLETPROOF CLICKABLE CARDS */}
+      {/* Top Stats Row - BULLETPROOF CLICKABLE CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         {/* Card 1: Active Onboardings */}
         <Card className="relative border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-blue-300 transition-all duration-300 h-full group">
-          {/* The Invisible Stretched Link */}
           <Link href="/app/workflows" className="absolute inset-0 z-10 cursor-pointer" aria-label="View Active Onboardings" />
-          
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600 group-hover:text-blue-600 transition-colors">
               Active Onboardings
@@ -83,9 +92,7 @@ export default async function DashboardPage() {
 
         {/* Card 2: Tasks Pending */}
         <Card className="relative border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-orange-300 transition-all duration-300 h-full group">
-          {/* The Invisible Stretched Link */}
           <Link href="/app/workflows" className="absolute inset-0 z-10 cursor-pointer" aria-label="View Tasks Pending" />
-          
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600 group-hover:text-orange-600 transition-colors">
               Tasks Pending
@@ -100,9 +107,7 @@ export default async function DashboardPage() {
 
         {/* Card 3: Overall Progress */}
         <Card className="relative border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-green-300 transition-all duration-300 h-full group">
-          {/* The Invisible Stretched Link */}
           <Link href="/app/workflows" className="absolute inset-0 z-10 cursor-pointer" aria-label="View Overall Progress" />
-          
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600 group-hover:text-green-600 transition-colors">
               Overall Progress
@@ -111,7 +116,6 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-slate-900">{overallProgress}%</div>
-            {/* Tiny visual progress bar */}
             <div className="w-full bg-slate-100 h-2 rounded-full mt-3 overflow-hidden">
               <div 
                 className="bg-green-500 h-full rounded-full transition-all duration-500" 
