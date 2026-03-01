@@ -6,7 +6,8 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle, XCircle, Clock, ShieldCheck, UserPlus } from "lucide-react";
-import { approveHireRequestAction, rejectHireRequestAction } from "@/actions/hire-requests";
+// Notice we no longer need to import the actions directly here, because the Client Component handles them!
+import ActionButtons from "./ActionButtons";
 
 export default async function HireRequestsDashboard() {
   const supabase = await createClient();
@@ -96,21 +97,8 @@ export default async function HireRequestsDashboard() {
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex md:flex-col gap-3 min-w-[140px]">
-                  <form action={approveHireRequestAction as any} className="w-full">
-                    <input type="hidden" name="requestId" value={request.id} />
-                    <button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
-                      <CheckCircle className="h-4 w-4" /> Approve
-                    </button>
-                  </form>
-                  <form action={rejectHireRequestAction as any} className="w-full">
-                    <input type="hidden" name="requestId" value={request.id} />
-                    <button type="submit" className="w-full bg-white border border-red-200 text-red-600 hover:bg-red-50 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
-                      <XCircle className="h-4 w-4" /> Reject
-                    </button>
-                  </form>
-                </div>
+                {/* === NEW: Action Buttons Component === */}
+                <ActionButtons requestId={request.id} />
 
               </div>
             ))}
