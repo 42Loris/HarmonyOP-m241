@@ -114,10 +114,10 @@ export async function POST(req: Request) {
               department: profile.department,
             }).returning();
 
+            // FIX: Removed profileId to bypass the foreign key schema constraint crash
             const [newWorkflow] = await db.insert(onboardingWorkflows).values({
               orgId: integration.orgId,
               newHireId: newUser.id,
-              profileId: profile.id,
               roleTitle: profile.name,
               department: profile.department,
               startDate: new Date(), 
