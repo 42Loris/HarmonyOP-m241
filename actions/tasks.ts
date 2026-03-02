@@ -35,17 +35,19 @@ export async function updateTaskStatus(taskId: string, newStatus: Status) {
       const inProgressCount = allTasks.filter(t => t.status === "IN_PROGRESS").length;
       
       const totalScore = doneCount + (inProgressCount * 0.5);
-      const progressRatio = Math.round((totalScore / allTasks.length) * 100);
+      
+      // Calculate ratio and add safety fallback to prevent NaN crashes
+      const progressRatio = Math.round((totalScore / allTasks.length) * 100) || 0;
+      const safeProgressRatio = Math.min(100, Math.max(0, progressRatio));
 
       // 4. Update the Workflow's progress bar in the database
       await db.update(onboardingWorkflows)
-        .set({ progressRatio })
+        .set({ progressRatio: safeProgressRatio })
         .where(eq(onboardingWorkflows.id, updatedTask.workflowId));
     }
 
-    // 5. Revalidate both views instantly
-    revalidatePath("/app/tasks");
-    revalidatePath("/app/dashboard");
+    // 5. The Nuclear Cache Clear: Forces Next.js to redraw the entire Dashboard and Task Board
+    revalidatePath("/app", "layout");
     
     return { success: true };
   } catch (error) {
