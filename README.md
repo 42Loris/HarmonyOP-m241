@@ -1,25 +1,22 @@
 # Harmony OP ⚙️
 
-Harmony OP is a modern, automated Employee Onboarding platform. It bridges the gap between IT and HR by directly integrating with Microsoft Entra ID (Active Directory) to automate role-based access, hardware provisioning, and HR tasks the moment a new employee is added to the system.
+Harmony OP is an enterprise-grade, automated Employee Onboarding and Provisioning platform. It bridges the gap between IT, HR, and Management by directly integrating with Microsoft Entra ID (Active Directory) to automate role-based access, hardware provisioning, and Microsoft 365 licensing the moment a hire is approved.
 
 ## ✨ Key Features
-* **Automated Directory Sync:** Connects to Microsoft Graph API to automatically detect new hires.
-* **Role-Based Profiles:** Map Microsoft Entra Groups to specific onboarding templates (e.g., "Software Engineer" gets GitHub access and a MacBook).
-* **Cross-Department Workflows:** Generates unified task lists for IT and HR on dedicated Kanban boards.
-* **Real-Time Dashboards:** Track onboarding completion progress at a glance.
-* **Multi-Tenant Architecture:** Securely supports multiple organizations/companies.
+
+* **"God-Mode" Auto-Provisioning:** Creates users directly in Microsoft Entra, assigns secure temporary passwords, attaches 365 licenses, and joins security groups automatically.
+* **Smart HR Request Forms:** Dynamic forms that pull live Microsoft tenant data and filter out duplicate license assignments based on predefined role templates.
+* **Mission Control Kanban:** Unified task boards for IT and HR featuring "Urgency Math" that sorts pending setups based on the employee's start date.
+* **The "Digital Red Carpet":** A dedicated, interactive Employee Dashboard providing new hires with an IT progress tracker and actionable Day 1 checklists.
+* **Automated Email Delivery:** Seamlessly dispatches welcome packages and manager approval notifications using Resend.
+* **Blazing Fast UI:** Achieves perfect Vercel Speed Insight scores using React 19 `<Suspense>` streaming boundaries.
 
 ## 🛠️ Tech Stack
+
 * **Framework:** Next.js 15 (App Router, React 19)
 * **Database:** PostgreSQL hosted on Supabase
 * **ORM:** Drizzle ORM
-* **Authentication:** Supabase Auth
-* **Styling:** Tailwind CSS & shadcn/ui
-* **Deployment:** Vercel (with Vercel Cron for background syncs)
-
-## 🚀 Getting Started
-1. Clone the repository.
-2. Run `npm install` to install dependencies.
-3. Copy `.env.example` to `.env.local` and add your Supabase and Database credentials.
-4. Run `npx drizzle-kit push` to apply the database schema.
-5. Run `npm run dev` to start the local development server at `localhost:3000`..
+* **Authentication:** Supabase Auth & Microsoft OAuth2
+* **Email:** Resend API
+* **Styling:** Tailwind CSS, Lucide Icons, shadcn/ui
+* **Deployment:** Vercel
