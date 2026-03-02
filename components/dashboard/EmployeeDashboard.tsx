@@ -1,11 +1,22 @@
 // components/dashboard/EmployeeDashboard.tsx
 "use client";
 
-import { CheckCircle2, Circle, Sparkles, Laptop, ShieldCheck, BookOpen, Coffee } from "lucide-react";
+import { useState } from "react";
+import { CheckCircle2, Circle, Sparkles, Laptop, ShieldCheck, BookOpen, Coffee, ExternalLink } from "lucide-react";
 
 export default function EmployeeDashboard({ user, workflow, tasks }: { user: any, workflow: any, tasks: any[] }) {
-  // If IT is still setting them up, show a specific state
   const isFullyProvisioned = workflow?.progressRatio === 100;
+
+  // Local state to handle the interactive checklist!
+  const [completedItems, setCompletedItems] = useState<{ [key: string]: boolean }>({
+    login: false,
+    mfa: false,
+    handbook: false,
+  });
+
+  const toggleChecklist = (item: string) => {
+    setCompletedItems(prev => ({ ...prev, [item]: !prev[item] }));
+  };
 
   return (
     <div className="p-8 max-w-5xl mx-auto min-h-screen space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -63,17 +74,17 @@ export default function EmployeeDashboard({ user, workflow, tasks }: { user: any
               )}
             </div>
 
-            {/* Live Task Tracker */}
+            {/* Live Task Tracker from the Database */}
             <div className="space-y-4">
-              {tasks?.map((task) => (
-                <div key={task.id} className="flex items-start gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50">
+              {tasks?.length > 0 ? tasks.map((task) => (
+                <div key={task.id} className="flex items-start gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50 transition-all">
                   {task.status === "DONE" ? (
                     <CheckCircle2 className="h-6 w-6 text-green-500 shrink-0" />
                   ) : (
                     <Circle className="h-6 w-6 text-slate-300 shrink-0" />
                   )}
                   <div>
-                    <h4 className={`font-semibold ${task.status === "DONE" ? "text-slate-900" : "text-slate-600"}`}>
+                    <h4 className={`font-semibold ${task.status === "DONE" ? "text-slate-900 line-through opacity-70" : "text-slate-900"}`}>
                       {task.title}
                     </h4>
                     <p className="text-sm text-slate-500 mt-1">
@@ -81,39 +92,68 @@ export default function EmployeeDashboard({ user, workflow, tasks }: { user: any
                     </p>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <p className="text-sm text-slate-500 italic p-4 bg-slate-50 rounded-lg border border-slate-100">No IT tasks assigned yet.</p>
+              )}
             </div>
           </section>
         </div>
 
-        {/* 3. First Week Schedule (Right Column) */}
+        {/* 3. First Week Schedule & Actionable Checklist (Right Column) */}
         <div className="space-y-6">
           <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-6 border-b border-slate-100 pb-4">
               <BookOpen className="h-5 w-5 text-indigo-600" />
-              Day 1 Checklist
+              Day 1 Action Items
             </h2>
             
             <ul className="space-y-4">
-              <li className="flex items-start gap-3">
-                <div className="mt-0.5 bg-indigo-100 p-1 rounded text-indigo-700"><CheckCircle2 className="h-4 w-4" /></div>
-                <div>
-                  <p className="text-sm font-bold text-slate-800">Log into Microsoft 365</p>
+              {/* Item 1: Office.com Login */}
+              <li className="flex items-start gap-3 group">
+                <button onClick={() => toggleChecklist('login')} className="mt-0.5 focus:outline-none transition-transform active:scale-90">
+                  {completedItems.login ? 
+                    <div className="bg-indigo-100 p-1 rounded text-indigo-700"><CheckCircle2 className="h-4 w-4" /></div> : 
+                    <div className="bg-slate-100 p-1 rounded text-slate-400 group-hover:text-indigo-500"><Circle className="h-4 w-4" /></div>
+                  }
+                </button>
+                <div className={`transition-all ${completedItems.login ? 'opacity-50 line-through' : ''}`}>
+                  <a href="https://www.office.com" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-slate-800 hover:text-indigo-600 flex items-center gap-1">
+                    Log into Microsoft 365 <ExternalLink className="h-3 w-3" />
+                  </a>
                   <p className="text-xs text-slate-500 mt-0.5">Use your new email and temp password.</p>
                 </div>
               </li>
-              <li className="flex items-start gap-3">
-                <div className="mt-0.5 bg-slate-100 p-1 rounded text-slate-400"><Circle className="h-4 w-4" /></div>
-                <div>
-                  <p className="text-sm font-bold text-slate-800">Set up Multi-Factor Auth</p>
-                  <p className="text-xs text-slate-500 mt-0.5">Download the MS Authenticator App.</p>
+
+              {/* Item 2: MFA Setup */}
+              <li className="flex items-start gap-3 group">
+                <button onClick={() => toggleChecklist('mfa')} className="mt-0.5 focus:outline-none transition-transform active:scale-90">
+                  {completedItems.mfa ? 
+                    <div className="bg-indigo-100 p-1 rounded text-indigo-700"><CheckCircle2 className="h-4 w-4" /></div> : 
+                    <div className="bg-slate-100 p-1 rounded text-slate-400 group-hover:text-indigo-500"><Circle className="h-4 w-4" /></div>
+                  }
+                </button>
+                <div className={`transition-all ${completedItems.mfa ? 'opacity-50 line-through' : ''}`}>
+                  <a href="https://aka.ms/mfasetup" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-slate-800 hover:text-indigo-600 flex items-center gap-1">
+                    Set up Multi-Factor Auth <ExternalLink className="h-3 w-3" />
+                  </a>
+                  <p className="text-xs text-slate-500 mt-0.5">Required for all secure access.</p>
                 </div>
               </li>
-              <li className="flex items-start gap-3">
-                <div className="mt-0.5 bg-slate-100 p-1 rounded text-slate-400"><Circle className="h-4 w-4" /></div>
-                <div>
-                  <p className="text-sm font-bold text-slate-800">Review Company Handbook</p>
-                  <p className="text-xs text-slate-500 mt-0.5">Available on the HR SharePoint portal.</p>
+
+              {/* Item 3: Company Handbook */}
+              <li className="flex items-start gap-3 group">
+                <button onClick={() => toggleChecklist('handbook')} className="mt-0.5 focus:outline-none transition-transform active:scale-90">
+                  {completedItems.handbook ? 
+                    <div className="bg-indigo-100 p-1 rounded text-indigo-700"><CheckCircle2 className="h-4 w-4" /></div> : 
+                    <div className="bg-slate-100 p-1 rounded text-slate-400 group-hover:text-indigo-500"><Circle className="h-4 w-4" /></div>
+                  }
+                </button>
+                <div className={`transition-all ${completedItems.handbook ? 'opacity-50 line-through' : ''}`}>
+                  {/* Note: Update this URL to your actual company SharePoint later! */}
+                  <a href="https://sharepoint.com" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-slate-800 hover:text-indigo-600 flex items-center gap-1">
+                    Review Company Handbook <ExternalLink className="h-3 w-3" />
+                  </a>
+                  <p className="text-xs text-slate-500 mt-0.5">Available on the HR portal.</p>
                 </div>
               </li>
             </ul>
@@ -127,7 +167,7 @@ export default function EmployeeDashboard({ user, workflow, tasks }: { user: any
             <p className="text-sm text-slate-600 mb-4">
               Your manager and the IT department are here to support you.
             </p>
-            <a href="mailto:it@company.com" className="block w-full text-center bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-medium py-2 px-4 rounded-lg transition-colors text-sm">
+            <a href="mailto:it@company.com" className="block w-full text-center bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-medium py-2 px-4 rounded-lg transition-colors text-sm shadow-sm">
               Contact IT Support
             </a>
           </section>
