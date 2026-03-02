@@ -1,14 +1,14 @@
 // app/app/dashboard/page.tsx
 import { db } from "@/db";
 import { eq } from "drizzle-orm";
-import { users, onboardingWorkflows, organizationIntegrations } from "@/db/schema";
+import { users, onboardingWorkflows, organizationIntegrations, workflowTasks } from "@/db/schema";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, CheckCircle2, Clock, Activity, UserPlus } from "lucide-react";
 import Link from "next/link";
 import SyncButton from "@/components/dashboard/SyncButton";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import EmployeeDashboard from "@/components/dashboard/EmployeeDashboard"; // NEW IMPORT
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -20,6 +20,29 @@ export default async function DashboardPage() {
   });
   if (!dbUser) redirect("/login");
 
+  // ==========================================
+  // SCENARIO 1: NEW HIRE (EMPLOYEE) VIEW
+  // ==========================================
+  if (dbUser.role === "EMPLOYEE") {
+    // Find their specific workflow
+    const myWorkflow = await db.query.onboardingWorkflows.findFirst({
+      where: eq(onboardingWorkflows.newHireId, dbUser.id),
+      with: { tasks: true }
+    });
+
+    return (
+      <EmployeeDashboard 
+        user={dbUser} 
+        workflow={myWorkflow || null} 
+        tasks={myWorkflow?.tasks || []} 
+      />
+    );
+  }
+
+  // ==========================================
+  // SCENARIO 2: ADMIN/HR VIEW
+  // ==========================================
+  
   // Check if this organization has connected their Microsoft Tenant
   const integration = await db.query.organizationIntegrations.findFirst({
     where: eq(organizationIntegrations.orgId, dbUser.orgId)
@@ -51,7 +74,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto min-h-screen space-y-8">
-      {/* Updated Header with conditional Sync Button & New Hire Button */}
+      {/* Admin Header */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Welcome back, {dbUser.name.split(" ")[0]}</h1>
@@ -59,10 +82,7 @@ export default async function DashboardPage() {
         </div>
         
         <div className="flex items-center gap-3">
-          {/* Only show the manual sync button if they have configured the integration */}
           {hasIntegration && <SyncButton />}
-          
-          {/* NEW: The HR Request Button */}
           <Link 
             href="/app/requests/new" 
             className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md flex items-center gap-2 text-sm transition-colors"
@@ -73,10 +93,8 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      {/* Top Stats Row - BULLETPROOF CLICKABLE CARDS */}
+      {/* Top Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        {/* Card 1: Active Onboardings */}
         <Card className="relative border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-blue-300 transition-all duration-300 h-full group">
           <Link href="/app/workflows" className="absolute inset-0 z-10 cursor-pointer" aria-label="View Active Onboardings" />
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -91,7 +109,6 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Card 2: Tasks Pending */}
         <Card className="relative border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-orange-300 transition-all duration-300 h-full group">
           <Link href="/app/workflows" className="absolute inset-0 z-10 cursor-pointer" aria-label="View Tasks Pending" />
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -106,7 +123,6 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Card 3: Overall Progress */}
         <Card className="relative border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-green-300 transition-all duration-300 h-full group">
           <Link href="/app/workflows" className="absolute inset-0 z-10 cursor-pointer" aria-label="View Overall Progress" />
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -125,7 +141,6 @@ export default async function DashboardPage() {
             </div>
           </CardContent>
         </Card>
-
       </div>
 
       {/* Recent Onboardings List */}
@@ -146,9 +161,8 @@ export default async function DashboardPage() {
         ) : (
           <div className="divide-y divide-slate-100">
             {activeWorkflows.map((workflow) => {
-              const wfTotal = workflow.tasks.length;
-              const wfDone = workflow.tasks.filter(t => t.status === "DONE").length;
-              const wfProgress = wfTotal === 0 ? 0 : Math.round((wfDone / wfTotal) * 100);
+              // Now we use the actual calculated progressRatio from the database!
+              const wfProgress = workflow.progressRatio || 0;
 
               return (
                 <div key={workflow.id} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
@@ -165,7 +179,7 @@ export default async function DashboardPage() {
                       </div>
                       <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                         <div 
-                          className="bg-blue-600 h-full rounded-full" 
+                          className="bg-blue-600 h-full rounded-full transition-all duration-500" 
                           style={{ width: `${wfProgress}%` }}
                         />
                       </div>

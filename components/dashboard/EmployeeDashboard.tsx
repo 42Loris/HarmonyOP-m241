@@ -1,86 +1,138 @@
 // components/dashboard/EmployeeDashboard.tsx
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Circle, Clock, Monitor, Key, FileText } from "lucide-react";
+import { CheckCircle2, Circle, Sparkles, Laptop, ShieldCheck, BookOpen, Coffee } from "lucide-react";
 
-export default function EmployeeDashboard({ workflow, userName }: { workflow: any, userName: string }) {
-  if (!workflow) {
-    return (
-      <div className="p-8 max-w-4xl mx-auto text-center mt-20">
-        <h2 className="text-2xl font-bold mb-2">Welcome to the team, {userName}!</h2>
-        <p className="text-slate-600">Your onboarding workflow hasn't been initialized yet. Hang tight!</p>
-      </div>
-    );
-  }
-
-  const tasks = workflow.tasks || [];
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter((t: any) => t.status === "DONE").length;
-  const progressPercent = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
-
-  const getTaskIcon = (type: string) => {
-    if (type === "IT_ACCESS") return <Key className="h-5 w-5" />;
-    if (type === "HARDWARE") return <Monitor className="h-5 w-5" />;
-    return <FileText className="h-5 w-5" />;
-  };
-
-  const getStatusIcon = (status: string) => {
-    if (status === "DONE") return <CheckCircle2 className="h-5 w-5 text-green-500" />;
-    if (status === "IN_PROGRESS") return <Clock className="h-5 w-5 text-blue-500" />;
-    return <Circle className="h-5 w-5 text-slate-300" />;
-  };
+export default function EmployeeDashboard({ user, workflow, tasks }: { user: any, workflow: any, tasks: any[] }) {
+  // If IT is still setting them up, show a specific state
+  const isFullyProvisioned = workflow?.progressRatio === 100;
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome aboard, {userName}!</h1>
-        <p className="text-slate-600 text-lg">Here is the real-time status of your equipment and access setup.</p>
+    <div className="p-8 max-w-5xl mx-auto min-h-screen space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      
+      {/* 1. The Welcome Hero Banner */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-900 text-white p-10 shadow-lg">
+        <div className="relative z-10 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-sm font-medium mb-6 border border-white/20">
+            <Sparkles className="h-4 w-4 text-blue-200" />
+            Welcome to the team!
+          </div>
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
+            Glad to have you here, {user.name.split(' ')[0]}.
+          </h1>
+          <p className="text-blue-100 text-lg">
+            You are officially a <strong>{user.department}</strong> team member. We are currently preparing your digital workspace. Here is everything you need to know for your first week.
+          </p>
+        </div>
+        
+        {/* Decorative background shapes */}
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-24 right-12 w-72 h-72 bg-blue-400/20 rounded-full blur-2xl"></div>
       </div>
 
-      <Card className="mb-8 overflow-hidden">
-        <div className="bg-slate-50 border-b p-6">
-          <div className="flex justify-between items-end mb-2">
-            <div>
-              <p className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Overall Progress</p>
-              <h3 className="text-2xl font-bold text-slate-900">{progressPercent}% Ready</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* 2. IT Provisioning Tracker (Left Column) */}
+        <div className="lg:col-span-2 space-y-6">
+          <section className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
+            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2 mb-6">
+              <Laptop className="h-6 w-6 text-blue-600" />
+              Your Workspace Setup
+            </h2>
+            
+            <div className="mb-8">
+              <div className="flex justify-between text-sm font-bold mb-2">
+                <span className="text-slate-700">IT Provisioning Progress</span>
+                <span className="text-blue-600">{workflow?.progressRatio || 0}%</span>
+              </div>
+              <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                <div 
+                  className="bg-blue-600 h-3 rounded-full transition-all duration-1000 ease-out"
+                  style={{ width: `${workflow?.progressRatio || 0}%` }}
+                ></div>
+              </div>
+              {isFullyProvisioned ? (
+                <p className="text-sm text-green-600 mt-3 font-medium flex items-center gap-1.5">
+                  <ShieldCheck className="h-4 w-4" /> All accounts and hardware are ready!
+                </p>
+              ) : (
+                <p className="text-sm text-slate-500 mt-3 flex items-center gap-1.5">
+                  <Circle className="h-3 w-3 fill-blue-500 text-blue-500 animate-pulse" /> 
+                  IT is currently configuring your access...
+                </p>
+              )}
             </div>
-            <p className="text-sm text-slate-500">{completedTasks} of {totalTasks} steps completed</p>
-          </div>
-          <div className="w-full bg-slate-200 rounded-full h-3">
-            <div 
-              className="bg-blue-600 h-3 rounded-full transition-all duration-500 ease-in-out" 
-              style={{ width: `${progressPercent}%` }}
-            ></div>
-          </div>
-        </div>
-      </Card>
 
-      <h3 className="text-xl font-semibold mb-4 text-slate-900">Your Setup Checklist</h3>
-      <div className="grid gap-3">
-        {tasks.map((task: any) => (
-          <Card key={task.id} className={`transition-all ${task.status === "DONE" ? "bg-slate-50/50 border-green-100" : ""}`}>
-            <CardContent className="p-4 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className={`p-2 rounded-lg ${task.status === "DONE" ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600"}`}>
-                  {getTaskIcon(task.taskType)}
+            {/* Live Task Tracker */}
+            <div className="space-y-4">
+              {tasks?.map((task) => (
+                <div key={task.id} className="flex items-start gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50">
+                  {task.status === "DONE" ? (
+                    <CheckCircle2 className="h-6 w-6 text-green-500 shrink-0" />
+                  ) : (
+                    <Circle className="h-6 w-6 text-slate-300 shrink-0" />
+                  )}
+                  <div>
+                    <h4 className={`font-semibold ${task.status === "DONE" ? "text-slate-900" : "text-slate-600"}`}>
+                      {task.title}
+                    </h4>
+                    <p className="text-sm text-slate-500 mt-1">
+                      {task.status === "DONE" ? "Completed by IT Team" : "Pending setup"}
+                    </p>
+                  </div>
                 </div>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        {/* 3. First Week Schedule (Right Column) */}
+        <div className="space-y-6">
+          <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-6 border-b border-slate-100 pb-4">
+              <BookOpen className="h-5 w-5 text-indigo-600" />
+              Day 1 Checklist
+            </h2>
+            
+            <ul className="space-y-4">
+              <li className="flex items-start gap-3">
+                <div className="mt-0.5 bg-indigo-100 p-1 rounded text-indigo-700"><CheckCircle2 className="h-4 w-4" /></div>
                 <div>
-                  <p className={`font-medium ${task.status === "DONE" ? "text-slate-500 line-through" : "text-slate-900"}`}>
-                    {task.title}
-                  </p>
-                  <p className="text-sm text-slate-500">Handled by {task.taskType.replace("_", " ")}</p>
+                  <p className="text-sm font-bold text-slate-800">Log into Microsoft 365</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Use your new email and temp password.</p>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-slate-600 mr-2">
-                  {task.status.replace("_", " ")}
-                </span>
-                {getStatusIcon(task.status)}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="mt-0.5 bg-slate-100 p-1 rounded text-slate-400"><Circle className="h-4 w-4" /></div>
+                <div>
+                  <p className="text-sm font-bold text-slate-800">Set up Multi-Factor Auth</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Download the MS Authenticator App.</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="mt-0.5 bg-slate-100 p-1 rounded text-slate-400"><Circle className="h-4 w-4" /></div>
+                <div>
+                  <p className="text-sm font-bold text-slate-800">Review Company Handbook</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Available on the HR SharePoint portal.</p>
+                </div>
+              </li>
+            </ul>
+          </section>
+
+          <section className="bg-gradient-to-b from-slate-50 to-slate-100 border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-2">
+              <Coffee className="h-5 w-5 text-amber-600" />
+              Need Help?
+            </h2>
+            <p className="text-sm text-slate-600 mb-4">
+              Your manager and the IT department are here to support you.
+            </p>
+            <a href="mailto:it@company.com" className="block w-full text-center bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-medium py-2 px-4 rounded-lg transition-colors text-sm">
+              Contact IT Support
+            </a>
+          </section>
+        </div>
+
       </div>
     </div>
   );
