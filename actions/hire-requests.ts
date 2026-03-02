@@ -73,7 +73,7 @@ export async function createHireRequestAction(formData: FormData) {
     // Send Email Notification via Resend (To the Manager)
     await resend.emails.send({
       from: 'Harmony OP <onboarding@resend.dev>', 
-      to: 'dpangione@online.gibz.ch', // <--- CHANGE THIS
+      to: 'dpangione@online.gibz.ch', // <--- CHANGE THIS FOR PROD LATER
       subject: `Action Required: New Hire Approval for ${firstName} ${lastName}`,
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
@@ -219,11 +219,11 @@ export async function approveHireRequestAction(formData: FormData) {
             body: JSON.stringify({ "@odata.id": `https://graph.microsoft.com/v1.0/directoryObjects/${msUserId}` })
           });
         }
-    }
+      }
     }
 
     // ==========================================
-    // PHASE 4: START HARMONY INTERNAL WORKFLOW
+    // PHASE 4: START HARMONY INTERNAL WORKFLOW (Self-Healing)
     // ==========================================
     const [newInternalUser] = await db.insert(users).values({
       orgId: request.orgId,
@@ -231,7 +231,15 @@ export async function approveHireRequestAction(formData: FormData) {
       name: `${request.firstName} ${request.lastName}`,
       role: "EMPLOYEE",
       department: request.department,
-    }).returning();
+    })
+    .onConflictDoUpdate({
+      target: users.email,
+      set: { 
+        name: `${request.firstName} ${request.lastName}`,
+        department: request.department 
+      }
+    })
+    .returning();
 
     const [newWorkflow] = await db.insert(onboardingWorkflows).values({
       orgId: request.orgId,

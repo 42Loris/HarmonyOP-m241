@@ -20,13 +20,32 @@ export default function NewHireForm({
   const [lastName, setLastName] = useState("");
   const [isSpecialHire, setIsSpecialHire] = useState(false);
   
-  // NEW: Track the currently selected profile
+  // Track the currently selected profile
   const [selectedProfileId, setSelectedProfileId] = useState("");
 
   const generatedEmail = `${firstName.toLowerCase().replace(/\s+/g, '')}.${lastName.toLowerCase().replace(/\s+/g, '')}@${tenantDomain}`;
 
   // Find the full profile object so we can display its default data
   const selectedProfile = profiles.find(p => p.id === selectedProfileId);
+
+  // === DYNAMIC FILTERING LOGIC ===
+  // 1. Convert the comma-separated strings into clean arrays
+  const defaultLicensesArray = selectedProfile?.defaultLicenses 
+    ? selectedProfile.defaultLicenses.split(",").map((s: string) => s.trim()) 
+    : [];
+    
+  const defaultGroupsArray = selectedProfile?.defaultGroups 
+    ? selectedProfile.defaultGroups.split(",").map((s: string) => s.trim()) 
+    : [];
+
+  // 2. Filter the Microsoft arrays to exclude items already in the profile
+  const availableMsLicenses = msLicenses.filter(
+    (lic: any) => !defaultLicensesArray.includes(lic.skuPartNumber)
+  );
+  
+  const availableMsGroups = msGroups.filter(
+    (group: any) => !defaultGroupsArray.includes(group.displayName)
+  );
 
   return (
     <form action={action} className="bg-white border border-slate-200 rounded-xl p-8 space-y-8 shadow-sm">
@@ -72,7 +91,7 @@ export default function NewHireForm({
             ))}
           </select>
 
-          {/* === NEW: Dynamic Display of Standard Access === */}
+          {/* Dynamic Display of Standard Access */}
           {selectedProfile && (selectedProfile.defaultLicenses || selectedProfile.defaultGroups) && (
             <div className="mt-4 p-4 bg-blue-50/50 border border-blue-100 rounded-lg animate-in fade-in slide-in-from-top-2">
               <h3 className="text-sm font-bold text-blue-900 flex items-center gap-2 mb-2">
@@ -111,25 +130,33 @@ export default function NewHireForm({
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Additional MS Licenses</label>
               <div className="w-full border border-slate-300 rounded-md bg-white max-h-48 overflow-y-auto p-2 space-y-1">
-                {msLicenses.map((lic: any) => (
-                  <label key={lic.skuId} className="flex items-start gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
-                    <input type="checkbox" name="msLicenses" value={lic.skuPartNumber} className="mt-1 h-4 w-4 text-blue-600 rounded border-slate-300" />
-                    <span className="text-sm text-slate-700 leading-tight">
-                      {lic.skuPartNumber} <br/><span className="text-xs text-slate-400">Available: {lic.prepaidUnits?.enabled - lic.consumedUnits}</span>
-                    </span>
-                  </label>
-                ))}
+                {availableMsLicenses.length > 0 ? (
+                  availableMsLicenses.map((lic: any) => (
+                    <label key={lic.skuId} className="flex items-start gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                      <input type="checkbox" name="msLicenses" value={lic.skuPartNumber} className="mt-1 h-4 w-4 text-blue-600 rounded border-slate-300" />
+                      <span className="text-sm text-slate-700 leading-tight">
+                        {lic.skuPartNumber} <br/><span className="text-xs text-slate-400">Available: {lic.prepaidUnits?.enabled - lic.consumedUnits}</span>
+                      </span>
+                    </label>
+                  ))
+                ) : (
+                  <p className="text-xs text-slate-500 p-2 italic">All available licenses are already included in the standard package.</p>
+                )}
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Additional MS Groups</label>
               <div className="w-full border border-slate-300 rounded-md bg-white max-h-48 overflow-y-auto p-2 space-y-1">
-                {msGroups.map((group: any) => (
-                  <label key={group.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
-                    <input type="checkbox" name="msGroups" value={group.displayName} className="h-4 w-4 text-blue-600 rounded border-slate-300" />
-                    <span className="text-sm text-slate-700">{group.displayName}</span>
-                  </label>
-                ))}
+                {availableMsGroups.length > 0 ? (
+                  availableMsGroups.map((group: any) => (
+                    <label key={group.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                      <input type="checkbox" name="msGroups" value={group.displayName} className="h-4 w-4 text-blue-600 rounded border-slate-300" />
+                      <span className="text-sm text-slate-700">{group.displayName}</span>
+                    </label>
+                  ))
+                ) : (
+                  <p className="text-xs text-slate-500 p-2 italic">All available groups are already included in the standard package.</p>
+                )}
               </div>
             </div>
             <div className="col-span-1 md:col-span-2 pt-4 border-t border-slate-200">

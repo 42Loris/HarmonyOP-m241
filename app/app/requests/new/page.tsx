@@ -1,31 +1,24 @@
 // app/app/requests/new/page.tsx
+import { Suspense } from "react";
 import { db } from "@/db";
 import { roleProfiles, organizationIntegrations, users } from "@/db/schema";
 import { createClient } from "@/utils/supabase/server";
 import { eq } from "drizzle-orm";
 import { createHireRequestAction } from "@/actions/hire-requests";
 import Link from "next/link";
-import { ArrowLeft, UserPlus } from "lucide-react";
+import { ArrowLeft, UserPlus, Loader2 } from "lucide-react";
 import NewHireForm from "./NewHireForm";
 
-export default async function NewHireRequestPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const dbUser = await db.query.users.findFirst({ where: eq(users.authId, user!.id) });
-
-  // 1. Fetch DB Profiles
-  const profiles = await db.query.roleProfiles.findMany({ where: eq(roleProfiles.orgId, dbUser!.orgId) });
-
-  // 2. Fetch MS Integration
+// === 1. THE ASYNC ENGINE (Runs in the background) ===
+async function AsyncMicrosoftForm({ profiles, orgId }: { profiles: any[], orgId: string }) {
   const integration = await db.query.organizationIntegrations.findFirst({
-    where: eq(organizationIntegrations.orgId, dbUser!.orgId),
+    where: eq(organizationIntegrations.orgId, orgId),
   });
 
   let msGroups = [];
   let msLicenses = [];
-  let tenantDomain = "company.com"; // Default fallback
+  let tenantDomain = "company.com";
 
-  // 3. If connected, fetch live data from Graph API
   if (integration?.clientId && integration?.clientSecret) {
     try {
       const tokenRes = await fetch(`https://login.microsoftonline.com/${integration.tenantId}/oauth2/v2.0/token`, {
@@ -41,26 +34,23 @@ export default async function NewHireRequestPage() {
       const { access_token } = await tokenRes.json();
 
       if (access_token) {
-        // Fetch Live Groups
         const groupsRes = await fetch(`https://graph.microsoft.com/v1.0/groups?$top=100&$select=id,displayName`, {
           headers: { Authorization: `Bearer ${access_token}` },
         });
         const groupsData = await groupsRes.json();
         msGroups = groupsData.value || [];
 
-        // Fetch Live Licenses (SKUs)
         const skusRes = await fetch(`https://graph.microsoft.com/v1.0/subscribedSkus?$select=skuId,skuPartNumber,consumedUnits,prepaidUnits`, {
           headers: { Authorization: `Bearer ${access_token}` },
         });
         const skusData = await skusRes.json();
         msLicenses = skusData.value || [];
 
-        // === NEW: Fetch the Actual Verified Domain Name ===
         const domainsRes = await fetch(`https://graph.microsoft.com/v1.0/domains`, {
           headers: { Authorization: `Bearer ${access_token}` },
         });
         const domainsData = await domainsRes.json();
-        // Find the one marked as the default for the tenant
+        
         const defaultDomain = domainsData.value?.find((d: any) => d.isDefault);
         if (defaultDomain) {
           tenantDomain = defaultDomain.id;
@@ -70,6 +60,26 @@ export default async function NewHireRequestPage() {
       console.error("Failed to fetch Graph data for form");
     }
   }
+
+  return (
+    <NewHireForm 
+      profiles={profiles} 
+      msLicenses={msLicenses} 
+      msGroups={msGroups} 
+      tenantDomain={tenantDomain}
+      action={createHireRequestAction as any} 
+    />
+  );
+}
+
+// === 2. THE MAIN PAGE (Renders Instantly for 100 Score) ===
+export default async function NewHireRequestPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const dbUser = await db.query.users.findFirst({ where: eq(users.authId, user!.id) });
+
+  // Fetch profiles instantly from our DB
+  const profiles = await db.query.roleProfiles.findMany({ where: eq(roleProfiles.orgId, dbUser!.orgId) });
 
   return (
     <div className="p-8 max-w-3xl mx-auto min-h-screen">
@@ -89,14 +99,17 @@ export default async function NewHireRequestPage() {
         </p>
       </header>
 
-      {/* Render our new Client Form Component */}
-      <NewHireForm 
-        profiles={profiles} 
-        msLicenses={msLicenses} 
-        msGroups={msGroups} 
-        tenantDomain={tenantDomain}
-        action={createHireRequestAction as any} 
-      />
+      {/* 3. THE SUSPENSE BOUNDARY */}
+      <Suspense fallback={
+        <div className="flex flex-col items-center justify-center p-12 bg-white rounded-xl border border-slate-200 shadow-sm mt-8">
+          <Loader2 className="h-10 w-10 text-blue-600 animate-spin mb-4" />
+          <p className="text-base text-slate-900 font-semibold">Connecting to Microsoft Graph...</p>
+          <p className="text-sm text-slate-500 mt-1">Fetching live licenses and groups from your tenant.</p>
+        </div>
+      }>
+        <AsyncMicrosoftForm profiles={profiles} orgId={dbUser!.orgId} />
+      </Suspense>
+
     </div>
   );
 }
