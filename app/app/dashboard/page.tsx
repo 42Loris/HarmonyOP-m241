@@ -54,7 +54,9 @@ async function AsyncAdminView({ dbUser }: { dbUser: any }) {
     completedTasks += wf.tasks.filter(t => t.status === "DONE").length;
   });
 
-  const overallProgress = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+  // === UPDATED MATH: Average the actual weighted progress of all workflows ===
+  const totalProgressSum = activeWorkflows.reduce((sum, wf) => sum + (wf.progressRatio || 0), 0);
+  const overallProgress = totalActive === 0 ? 0 : Math.round(totalProgressSum / totalActive);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">

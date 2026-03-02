@@ -25,19 +25,24 @@ export default async function TasksPage() {
     },
   });
 
+  // Filter ONLY IT-related tasks
+  const itTaskTypes = ["HARDWARE", "SOFTWARE", "ACCESS", "IT_PROVISIONING"];
+
   // Flatten the nested data into a simple array for the Kanban board
   const allTasks = activeWorkflows.flatMap(workflow => 
-    workflow.tasks.map(task => ({
-      id: task.id,
-      title: task.title,
-      taskType: task.taskType,
-      status: task.status,
-      workflow: {
-        roleTitle: workflow.roleTitle,
-        department: workflow.department,
-        newHireName: workflow.newHire?.name || "Unknown User",
-      }
-    }))
+    workflow.tasks
+      .filter(task => itTaskTypes.includes(task.taskType)) // <--- THE MAGIC FILTER
+      .map(task => ({
+        id: task.id,
+        title: task.title,
+        taskType: task.taskType,
+        status: task.status,
+        workflow: {
+          roleTitle: workflow.roleTitle,
+          department: workflow.department,
+          newHireName: workflow.newHire?.name || "Unknown User",
+        }
+      }))
   );
 
   return (
