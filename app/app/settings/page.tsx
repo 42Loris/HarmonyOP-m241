@@ -1,34 +1,69 @@
 // app/app/settings/page.tsx
-import Link from "next/link";
+"use client";
+
+import { useState } from "react";
+import { resetTenantDataAction } from "@/actions/tenant-reset";
+import { AlertTriangle, Settings, ServerCrash, Loader2 } from "lucide-react";
 
 export default function SettingsPage() {
+  const [isResetting, setIsResetting] = useState(false);
+
+  const handleFactoryReset = async () => {
+    const confirmReset = window.confirm(
+      "DANGER: This will permanently delete all Role Profiles, Hire Requests, Onboarding Workflows, and Employee accounts. Your Admin account and Microsoft keys will be saved. \n\nAre you sure you want to proceed?"
+    );
+
+    if (!confirmReset) return;
+
+    setIsResetting(true);
+    const res = await resetTenantDataAction();
+    setIsResetting(false);
+
+    if (res?.error) {
+      alert("Failed to reset: " + res.error);
+    } else {
+      alert("Success! The environment has been wiped clean and is ready for the new tenant.");
+      window.location.href = "/app/dashboard"; // Force a hard reload back to dashboard
+    }
+  };
+
   return (
-    <div className="p-8 max-w-7xl mx-auto min-h-screen">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Tenant Settings</h1>
-        <p className="text-sm text-slate-500">Manage your organization's integrations and preferences.</p>
+    <div className="p-8 max-w-4xl mx-auto min-h-screen space-y-8">
+      <header className="mb-8 border-b border-slate-200 pb-6">
+        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+          <Settings className="h-8 w-8 text-slate-600" />
+          Organization Settings
+        </h1>
+        <p className="text-sm text-slate-500 mt-2">
+          Manage your platform configurations and data lifecycle.
+        </p>
       </header>
-      
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">Integrations</h3>
+
+      {/* Danger Zone */}
+      <section className="mt-12">
+        <h2 className="text-lg font-bold text-red-600 mb-4 flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5" /> Danger Zone
+        </h2>
         
-        <div className="border border-slate-200 rounded-lg p-6 flex items-center justify-between">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
-            <h4 className="font-semibold text-slate-900 flex items-center gap-2">
-              Microsoft Entra ID (Active Directory)
-              <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Available</span>
-            </h4>
-            <p className="text-sm text-slate-500 mt-1">Automatically sync users and groups directly from your Microsoft Tenant.</p>
+            <h3 className="font-bold text-red-900 text-lg">Factory Reset Tenant Data</h3>
+            <p className="text-sm text-red-700 mt-1 max-w-xl">
+              Did you recently switch Microsoft Tenants? Use this to wipe all old test data. This will permanently delete all Hire Requests, Workflows, generated Employees, and Role Profiles. <strong>Your Admin account and Integration settings will not be deleted.</strong>
+            </p>
           </div>
-          {/* This now links directly to the form we built! */}
-          <Link 
-            href="/app/settings/integrations" 
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
+          
+          <button 
+            onClick={handleFactoryReset}
+            disabled={isResetting}
+            className="whitespace-nowrap bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
           >
-            Connect Tenant
-          </Link>
+            {isResetting ? <Loader2 className="h-5 w-5 animate-spin" /> : <ServerCrash className="h-5 w-5" />}
+            {isResetting ? "Wiping Data..." : "Reset Environment"}
+          </button>
         </div>
-      </div>
+      </section>
+      
     </div>
   );
 }
