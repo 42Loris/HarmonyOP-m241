@@ -94,8 +94,9 @@ async function AsyncAdminView({ dbUser }: { dbUser: any }) {
           </CardContent>
         </Card>
 
+        {/* === UPDATED: Route this card to our new Pending Tasks Mission Control === */}
         <Card className="relative border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-orange-300 transition-all duration-300 h-full group">
-          <Link href="/app/workflows" className="absolute inset-0 z-10 cursor-pointer" aria-label="View Tasks Pending" />
+          <Link href="/app/tasks/pending" className="absolute inset-0 z-10 cursor-pointer" aria-label="View Tasks Pending" />
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600 group-hover:text-orange-600 transition-colors">
               Tasks Pending
