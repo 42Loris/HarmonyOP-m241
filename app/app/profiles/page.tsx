@@ -6,9 +6,10 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Network } from "lucide-react";
+import { Shield, Network, CheckCircle } from "lucide-react"; // <-- Added CheckCircle
 import CreateProfileModal from "@/components/profiles/CreateProfileModal";
-import Link from "next/link"; // <-- Added Import for clickable cards
+import Link from "next/link";
+import AutoMapButton from "./AutoMapButton"; // <-- Imported our new Magic Button
 
 export default async function ProfilesPage() {
   const supabase = await createClient();
@@ -48,9 +49,10 @@ export default async function ProfilesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {profiles.map((profile) => (
-            // WRAPPED IN A LINK COMPONENT HERE:
-            <Link href={`/app/profiles/${profile.id}`} key={profile.id} className="block group">
-              <Card className="relative overflow-hidden group-hover:shadow-md transition-all group-hover:border-blue-200 border-slate-200 h-full">
+            <Card key={profile.id} className="relative overflow-hidden group hover:shadow-md transition-all hover:border-blue-200 border-slate-200 h-full flex flex-col">
+              
+              {/* TOP HALF: Clickable Link to Profile Details */}
+              <Link href={`/app/profiles/${profile.id}`} className="block flex-grow cursor-pointer">
                 <CardHeader className="pb-4">
                   <div className="flex justify-between items-start mb-2">
                     <Badge variant="secondary" className="bg-slate-100 text-slate-600 group-hover:bg-slate-200 transition-colors">
@@ -65,26 +67,28 @@ export default async function ProfilesPage() {
                     Standard equipment and access provisioning template.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="bg-slate-50 border-t p-4 h-full">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Network className={`h-4 w-4 ${profile.entraGroupId ? "text-blue-500" : "text-slate-400"}`} />
-                      <span className="text-xs font-medium text-slate-700">Entra ID Mapping</span>
-                    </div>
-                    
-                    {profile.entraGroupId ? (
-                      <Badge className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100">
-                        Mapped
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-slate-400 border-slate-200 border-dashed">
-                        Unmapped
-                      </Badge>
-                    )}
+              </Link>
+
+              {/* BOTTOM HALF: Actionable Entra ID Section */}
+              <CardContent className="bg-slate-50 border-t p-4 mt-auto">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Network className={`h-4 w-4 ${profile.entraGroupId ? "text-blue-500" : "text-slate-400"}`} />
+                    <span className="text-xs font-medium text-slate-700">Entra ID Mapping</span>
                   </div>
-                </CardContent>
-              </Card>
-            </Link>
+                  
+                  {/* The Auto-Map Logic */}
+                  {profile.entraGroupId ? (
+                    <Badge className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100 gap-1 flex items-center">
+                      <CheckCircle className="h-3 w-3" /> Mapped
+                    </Badge>
+                  ) : (
+                    <AutoMapButton profileId={profile.id} />
+                  )}
+                </div>
+              </CardContent>
+
+            </Card>
           ))}
         </div>
       )}
