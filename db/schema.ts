@@ -41,7 +41,7 @@ export const onboardingWorkflows = pgTable("onboarding_workflows", {
   id: uuid("id").primaryKey().defaultRandom(),
   orgId: uuid("org_id").notNull().references(() => organizations.id),
   newHireId: uuid("new_hire_id").notNull().references(() => users.id),
-  profileId: uuid("profile_id").references(() => onboardingProfiles.id),
+  profileId: uuid("profile_id").references(() => roleProfiles.id),
   roleTitle: text("role_title").notNull().default("Employee"), 
   department: text("department").notNull().default("General"), 
   startDate: timestamp("start_date").notNull(),
