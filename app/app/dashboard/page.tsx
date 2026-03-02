@@ -1,66 +1,50 @@
 // app/app/dashboard/page.tsx
+import { Suspense } from "react";
 import { db } from "@/db";
 import { eq } from "drizzle-orm";
-import { users, onboardingWorkflows, organizationIntegrations, workflowTasks } from "@/db/schema";
+import { users, onboardingWorkflows, organizationIntegrations } from "@/db/schema";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, CheckCircle2, Clock, Activity, UserPlus } from "lucide-react";
+import { Users, CheckCircle2, Clock, Activity, UserPlus, Loader2 } from "lucide-react";
 import Link from "next/link";
 import SyncButton from "@/components/dashboard/SyncButton";
-import EmployeeDashboard from "@/components/dashboard/EmployeeDashboard"; // NEW IMPORT
+import EmployeeDashboard from "@/components/dashboard/EmployeeDashboard";
 
-export default async function DashboardPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const dbUser = await db.query.users.findFirst({
-    where: eq(users.authId, user.id),
+// ==========================================
+// 1. ASYNC EMPLOYEE DASHBOARD ENGINE
+// ==========================================
+async function AsyncEmployeeView({ dbUser }: { dbUser: any }) {
+  const myWorkflow = await db.query.onboardingWorkflows.findFirst({
+    where: eq(onboardingWorkflows.newHireId, dbUser.id),
+    with: { tasks: true }
   });
-  if (!dbUser) redirect("/login");
 
-  // ==========================================
-  // SCENARIO 1: NEW HIRE (EMPLOYEE) VIEW
-  // ==========================================
-  if (dbUser.role === "EMPLOYEE") {
-    // Find their specific workflow
-    const myWorkflow = await db.query.onboardingWorkflows.findFirst({
-      where: eq(onboardingWorkflows.newHireId, dbUser.id),
-      with: { tasks: true }
-    });
+  return (
+    <EmployeeDashboard 
+      user={dbUser} 
+      workflow={myWorkflow || null} 
+      tasks={myWorkflow?.tasks || []} 
+    />
+  );
+}
 
-    return (
-      <EmployeeDashboard 
-        user={dbUser} 
-        workflow={myWorkflow || null} 
-        tasks={myWorkflow?.tasks || []} 
-      />
-    );
-  }
-
-  // ==========================================
-  // SCENARIO 2: ADMIN/HR VIEW
-  // ==========================================
-  
-  // Check if this organization has connected their Microsoft Tenant
+// ==========================================
+// 2. ASYNC ADMIN DASHBOARD ENGINE
+// ==========================================
+async function AsyncAdminView({ dbUser }: { dbUser: any }) {
   const integration = await db.query.organizationIntegrations.findFirst({
     where: eq(organizationIntegrations.orgId, dbUser.orgId)
   });
   const hasIntegration = !!integration;
 
-  // Fetch active workflows and their nested tasks for this organization
   const activeWorkflows = await db.query.onboardingWorkflows.findMany({
     where: eq(onboardingWorkflows.orgId, dbUser.orgId),
-    with: {
-      newHire: true,
-      tasks: true,
-    },
+    with: { newHire: true, tasks: true },
     orderBy: (workflows, { desc }) => [desc(workflows.createdAt)],
     limit: 5,
   });
 
-  // Calculate high-level stats
   const totalActive = activeWorkflows.length;
   let totalTasks = 0;
   let completedTasks = 0;
@@ -73,8 +57,7 @@ export default async function DashboardPage() {
   const overallProgress = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
   return (
-    <div className="p-8 max-w-7xl mx-auto min-h-screen space-y-8">
-      {/* Admin Header */}
+    <div className="space-y-8 animate-in fade-in duration-500">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Welcome back, {dbUser.name.split(" ")[0]}</h1>
@@ -161,9 +144,7 @@ export default async function DashboardPage() {
         ) : (
           <div className="divide-y divide-slate-100">
             {activeWorkflows.map((workflow) => {
-              // Now we use the actual calculated progressRatio from the database!
               const wfProgress = workflow.progressRatio || 0;
-
               return (
                 <div key={workflow.id} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
                   <div>
@@ -191,6 +172,40 @@ export default async function DashboardPage() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// ==========================================
+// 3. MAIN PAGE SHELL (Loads Instantly)
+// ==========================================
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  // Only run the absolute minimum DB query to determine who is logging in
+  const dbUser = await db.query.users.findFirst({
+    where: eq(users.authId, user.id),
+  });
+  if (!dbUser) redirect("/login");
+
+  return (
+    <div className="p-8 max-w-7xl mx-auto min-h-screen">
+      {/* Vercel instantly paints the screen, securing the 100 Score */}
+      <Suspense fallback={
+        <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+          <Loader2 className="h-10 w-10 text-blue-600 animate-spin" />
+          <p className="text-slate-500 font-medium">Loading your dashboard...</p>
+        </div>
+      }>
+        {/* Stream the heavy data components in the background */}
+        {dbUser.role === "EMPLOYEE" ? (
+          <AsyncEmployeeView dbUser={dbUser} />
+        ) : (
+          <AsyncAdminView dbUser={dbUser} />
+        )}
+      </Suspense>
     </div>
   );
 }
