@@ -67,7 +67,7 @@ export async function offboardEmployeeAction(employeeId: string) {
 
     // 5. Generate the Offboarding Kanban Tasks
     const [offboardWorkflow] = await db.insert(onboardingWorkflows).values({
-      id: crypto.randomUUID(), // <--- Added ID to satisfy Drizzle
+      id: crypto.randomUUID(),
       orgId: dbAdmin.orgId,
       newHireId: targetEmployee.id,
       profileId: "OFFBOARDING", 
@@ -76,24 +76,24 @@ export async function offboardEmployeeAction(employeeId: string) {
       startDate: new Date(),
     }).returning();
 
-    // 6. Generate the specific tasks with explicit IDs
+    // 6. Generate the specific tasks with explicit IDs and matching schema enums
     await db.insert(workflowTasks).values([
       {
-        id: crypto.randomUUID(), // <--- Added ID
+        id: crypto.randomUUID(),
         workflowId: offboardWorkflow.id,
         title: "Collect Company Hardware (Laptop, Phone)",
         taskType: "HARDWARE",
         status: "PENDING",
       },
       {
-        id: crypto.randomUUID(), // <--- Added ID
+        id: crypto.randomUUID(),
         workflowId: offboardWorkflow.id,
         title: "Revoke 3rd Party SaaS Licenses (GitHub, Figma)",
-        taskType: "SOFTWARE",
+        taskType: "IT_ACCESS", // <--- THE FIX: Changed from SOFTWARE to IT_ACCESS
         status: "PENDING",
       },
       {
-        id: crypto.randomUUID(), // <--- Added ID
+        id: crypto.randomUUID(),
         workflowId: offboardWorkflow.id,
         title: "Conduct Exit Interview & Final Payroll",
         taskType: "HR_ADMIN",
