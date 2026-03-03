@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { updateTaskStatus } from "@/actions/tasks";
 import { Loader2, Monitor, AlertCircle, CheckCircle2, Play } from "lucide-react";
+import { toast } from "sonner"; // <-- NEW IMPORT
 
 type Task = {
   id: string;
@@ -20,13 +21,35 @@ type Task = {
 export default function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
-  const handleStatusChange = async (taskId: string, newStatus: "PENDING" | "IN_PROGRESS" | "BLOCKED" | "DONE") => {
+  const handleStatusChange = async (taskId: string, newStatus: "PENDING" | "IN_PROGRESS" | "BLOCKED" | "DONE", taskTitle: string, newHireName: string) => {
     setLoadingId(taskId);
+    
+    // Fire a loading toast while we wait for the database
+    const toastId = toast.loading(`Updating task status...`);
+    
     const res = await updateTaskStatus(taskId, newStatus);
     setLoadingId(null);
 
     if (res?.error) {
-      alert("Failed to update task: " + res.error);
+      toast.error("Update Failed", { id: toastId, description: res.error });
+    } else {
+      // Fire different success toasts based on the action taken
+      if (newStatus === "DONE") {
+        toast.success("Task Completed!", { 
+          id: toastId, 
+          description: `"${taskTitle}" for ${newHireName} is marked as done.` 
+        });
+      } else if (newStatus === "BLOCKED") {
+        toast.error("Task Blocked", { 
+          id: toastId, 
+          description: `"${taskTitle}" has been flagged as blocked.` 
+        });
+      } else {
+        toast.success("Task Updated", { 
+          id: toastId, 
+          description: `"${taskTitle}" moved to In Progress.` 
+        });
+      }
     }
   };
 
@@ -60,7 +83,7 @@ export default function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
       <div className="p-3 bg-slate-50 border-t border-slate-100 flex gap-2">
         {task.status === "PENDING" && (
           <button 
-            onClick={() => handleStatusChange(task.id, "IN_PROGRESS")}
+            onClick={() => handleStatusChange(task.id, "IN_PROGRESS", task.title, task.workflow.newHireName)}
             disabled={loadingId === task.id}
             className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
           >
@@ -72,7 +95,7 @@ export default function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
         {(task.status === "IN_PROGRESS" || task.status === "BLOCKED") && (
           <>
             <button 
-              onClick={() => handleStatusChange(task.id, task.status === "BLOCKED" ? "IN_PROGRESS" : "BLOCKED")}
+              onClick={() => handleStatusChange(task.id, task.status === "BLOCKED" ? "IN_PROGRESS" : "BLOCKED", task.title, task.workflow.newHireName)}
               disabled={loadingId === task.id}
               className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${task.status === "BLOCKED" ? "bg-orange-100 text-orange-700 hover:bg-orange-200" : "bg-red-100 text-red-700 hover:bg-red-200"}`}
             >
@@ -80,7 +103,7 @@ export default function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
               {task.status === "BLOCKED" ? "Unblock" : "Block"}
             </button>
             <button 
-              onClick={() => handleStatusChange(task.id, "DONE")}
+              onClick={() => handleStatusChange(task.id, "DONE", task.title, task.workflow.newHireName)}
               disabled={loadingId === task.id}
               className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
             >
