@@ -175,3 +175,16 @@ export const hireRequestsRelations = relations(hireRequests, ({ one }) => ({
   profile: one(roleProfiles, { fields: [hireRequests.profileId], references: [roleProfiles.id] }),
   requester: one(users, { fields: [hireRequests.requesterId], references: [users.id] }),
 }));
+
+// =====================
+// === AUDIT LOGS ===
+// =====================
+
+export const auditLogs = pgTable("audit_logs", {
+  id: uuid("id").primaryKey().notNull(),
+  orgId: uuid("org_id").notNull(),
+  actorName: text("actor_name").notNull(), // The person who clicked the button
+  actionType: text("action_type").notNull(), // e.g., "TERMINATION", "SETTINGS_UPDATE"
+  description: text("description").notNull(), // e.g., "Revoked access for John Doe"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

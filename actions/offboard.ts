@@ -2,7 +2,7 @@
 "use server";
 
 import { db } from "@/db";
-import { users, organizationIntegrations, onboardingWorkflows, workflowTasks } from "@/db/schema";
+import { users, organizationIntegrations, onboardingWorkflows, workflowTasks, auditLogs } from "@/db/schema"; // <-- Imported auditLogs
 import { createClient } from "@/utils/supabase/server";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -12,14 +12,12 @@ export async function offboardEmployeeAction(employeeId: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Unauthorized" };
 
-  // 1. Verify the person clicking the button is an Admin
   const dbAdmin = await db.query.users.findFirst({ where: eq(users.authId, user.id) });
   if (!dbAdmin || dbAdmin.role === "EMPLOYEE") {
     return { error: "Unauthorized access. Only Admins can offboard employees." };
   }
 
   try {
-    // 2. Fetch the target employee and the organization's MS keys
     const targetEmployee = await db.query.users.findFirst({ where: eq(users.id, employeeId) });
     if (!targetEmployee) return { error: "Employee not found." };
 
@@ -27,7 +25,6 @@ export async function offboardEmployeeAction(employeeId: string) {
       where: eq(organizationIntegrations.orgId, dbAdmin.orgId)
     });
 
-    // 3. Authenticate with Microsoft Graph if connected
     if (integration?.clientId && integration?.clientSecret) {
       const tokenRes = await fetch(`https://login.microsoftonline.com/${integration.tenantId}/oauth2/v2.0/token`, {
         method: "POST",
@@ -45,14 +42,12 @@ export async function offboardEmployeeAction(employeeId: string) {
       if (access_token) {
         const headers = { Authorization: `Bearer ${access_token}`, "Content-Type": "application/json" };
         
-        // A. Disable the Account Instantly
         await fetch(`https://graph.microsoft.com/v1.0/users/${targetEmployee.email}`, {
           method: "PATCH",
           headers,
           body: JSON.stringify({ accountEnabled: false })
         });
 
-        // B. Revoke all active sign-in sessions (kicks them out of currently open apps)
         await fetch(`https://graph.microsoft.com/v1.0/users/${targetEmployee.email}/revokeSignInSessions`, {
           method: "POST",
           headers
@@ -60,12 +55,10 @@ export async function offboardEmployeeAction(employeeId: string) {
       }
     }
 
-    // 4. Update internal database (Mark as Terminated)
     await db.update(users)
       .set({ department: "Terminated (Offboarded)" })
       .where(eq(users.id, employeeId));
 
-    // 5. Generate the Offboarding Kanban Tasks
     const [offboardWorkflow] = await db.insert(onboardingWorkflows).values({
       id: crypto.randomUUID(),
       orgId: dbAdmin.orgId,
@@ -76,7 +69,6 @@ export async function offboardEmployeeAction(employeeId: string) {
       startDate: new Date(),
     }).returning();
 
-    // 6. Generate the specific tasks with explicit IDs and matching schema enums
     await db.insert(workflowTasks).values([
       {
         id: crypto.randomUUID(),
@@ -89,7 +81,7 @@ export async function offboardEmployeeAction(employeeId: string) {
         id: crypto.randomUUID(),
         workflowId: offboardWorkflow.id,
         title: "Revoke 3rd Party SaaS Licenses (GitHub, Figma)",
-        taskType: "IT_ACCESS", // <--- THE FIX: Changed from SOFTWARE to IT_ACCESS
+        taskType: "IT_ACCESS",
         status: "PENDING",
       },
       {
@@ -101,10 +93,19 @@ export async function offboardEmployeeAction(employeeId: string) {
       }
     ]);
 
+    // === NEW: WRITE TO THE AUDIT LOG ===
+    await db.insert(auditLogs).values({
+      id: crypto.randomUUID(),
+      orgId: dbAdmin.orgId,
+      actorName: dbAdmin.name, // The Admin who clicked the button
+      actionType: "TERMINATION",
+      description: `Revoked Microsoft 365 access and initiated offboarding for ${targetEmployee.name}.`,
+    });
+
     revalidatePath("/app", "layout");
     return { success: true };
   } catch (error: any) {
     console.error("Offboarding failed:", error);
-    return { error: "Failed to offboard employee. Check Microsoft logs." };
+    return { error: "Failed to offboard employee." };
   }
 }
