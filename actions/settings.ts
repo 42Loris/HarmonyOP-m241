@@ -46,6 +46,7 @@ export async function updateMicrosoftIntegrationAction(formData: FormData) {
       await db.insert(organizationIntegrations).values({
         id: crypto.randomUUID(), // Ensure a unique ID is provided
         orgId: dbUser.orgId,
+        provider: "microsoft",   // <--- THE FIX: Satisfies your schema requirement!
         tenantId,
         clientId,
         clientSecret,
