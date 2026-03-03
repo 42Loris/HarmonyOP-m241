@@ -4,6 +4,8 @@ import "./globals.css";
 // === Vercel Tracking Components ===
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
+// === UI Components ===
+import { Toaster } from "sonner"; // <-- NEW IMPORT
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +32,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {/* === Global Toast Notifications === */}
+        <Toaster position="bottom-right" richColors />
+        
         {children}
         
         {/* === Vercel Performance & Visitor Tracking === */}

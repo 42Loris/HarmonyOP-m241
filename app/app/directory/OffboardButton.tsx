@@ -1,9 +1,10 @@
-// components/directory/OffboardButton.tsx
+// app/app/directory/OffboardButton.tsx
 "use client";
 
 import { useState } from "react";
 import { offboardEmployeeAction } from "@/actions/offboard";
-import { UserMinus, Loader2, ShieldAlert } from "lucide-react";
+import { UserMinus, Loader2 } from "lucide-react";
+import { toast } from "sonner"; // <-- NEW IMPORT
 
 export default function OffboardButton({ employeeId, employeeName }: { employeeId: string, employeeName: string }) {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -14,13 +15,20 @@ export default function OffboardButton({ employeeId, employeeName }: { employeeI
     if (!window.confirm(confirmText)) return;
 
     setIsProcessing(true);
+    
+    // We can trigger a "loading" toast while the API does its work!
+    const toastId = toast.loading(`Terminating access for ${employeeName}...`);
+    
     const res = await offboardEmployeeAction(employeeId);
     setIsProcessing(false);
 
     if (res?.error) {
-      alert("Error: " + res.error);
+      toast.error("Failed to offboard", { id: toastId, description: res.error });
     } else {
-      alert(`${employeeName} has been successfully offboarded and locked out of the tenant.`);
+      toast.success("Access Revoked", { 
+        id: toastId, 
+        description: `${employeeName} has been successfully locked out of the tenant.` 
+      });
     }
   };
 
