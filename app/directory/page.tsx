@@ -5,7 +5,7 @@ import { users } from "@/db/schema";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { Users, Mail, Briefcase } from "lucide-react";
-import OffboardButton from "@/components/directory/OffboardButton";
+import OffboardButton from "@/app/directory/OffboardButton";
 
 export default async function EmployeeDirectoryPage() {
   const supabase = await createClient();

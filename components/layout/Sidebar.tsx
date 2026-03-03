@@ -13,7 +13,8 @@ import {
   ClipboardCheck,
   UserCircle,
   LogOut,
-  ShieldCheck // <-- Added for the Manager Approvals icon
+  ShieldCheck,
+  Contact // <-- Added the new Contact icon for the Directory
 } from "lucide-react";
 import { signOutAction } from "@/actions/auth";
 
@@ -28,7 +29,8 @@ export default function Sidebar({ userRole, userName, orgName }: SidebarProps) {
 
   const adminNav = [
     { name: "Dashboard", href: "/app/dashboard", icon: LayoutDashboard },
-    { name: "Manager Approvals", href: "/app/requests", icon: ShieldCheck }, // <-- Properly added here!
+    { name: "Manager Approvals", href: "/app/requests", icon: ShieldCheck },
+    { name: "Directory", href: "/app/directory", icon: Contact }, // <-- THE NEW DIRECTORY LINK
     { name: "Active Workflows", href: "/app/workflows", icon: Activity },
     { name: "IT Tasks", href: "/app/tasks", icon: CheckSquare },
     { name: "HR Tasks", href: "/app/hr-tasks", icon: ClipboardCheck },
