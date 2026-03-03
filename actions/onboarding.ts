@@ -8,7 +8,6 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 
-// 1. Updated Schema to expect a profileId
 const TriggerSchema = z.object({
   name: z.string().min(2, "Name is required"),
   email: z.string().email("Invalid email"),
@@ -41,7 +40,6 @@ export async function triggerOnboardingAction(prevState: any, formData: FormData
   const { name, email, profileId, startDate } = parsed.data;
 
   try {
-    // Fetch the selected profile to get the standard role and department
     const profile = await db.query.onboardingProfiles.findFirst({
       where: eq(onboardingProfiles.id, profileId)
     });
@@ -49,31 +47,47 @@ export async function triggerOnboardingAction(prevState: any, formData: FormData
     if (!profile) return { error: "Selected profile not found." };
 
     await db.transaction(async (tx) => {
-      // Create the New Hire Profile
       const [newHire] = await tx.insert(users).values({
         orgId: hrUser.orgId,
         email,
         name,
         role: "EMPLOYEE",
-        department: profile.department, // Auto-mapped from profile
+        department: profile.department, 
       }).returning();
 
-      // Initiate the Workflow
       const [workflow] = await tx.insert(onboardingWorkflows).values({
         orgId: hrUser.orgId,
         newHireId: newHire.id,
-        profileId: profile.id, // Link it to the profile
-        roleTitle: profile.roleTitle, // Auto-mapped from profile
-        department: profile.department, // Auto-mapped from profile
+        profileId: profile.id, 
+        roleTitle: profile.roleTitle, 
+        department: profile.department, 
         startDate: new Date(startDate),
         progressRatio: 0,
       }).returning();
 
-      // For now, auto-assign standard tasks. (We can make this dynamic per-profile later!)
+      // === NEW: ADDED COSTS TO THE TASKS ===
       await tx.insert(workflowTasks).values([
-        { workflowId: workflow.id, title: "Create AD & Email Account", taskType: "IT_ACCESS", status: "PENDING" },
-        { workflowId: workflow.id, title: "Order Laptop & Peripherals", taskType: "HARDWARE", status: "PENDING" },
-        { workflowId: workflow.id, title: "Setup Payroll", taskType: "HR_ADMIN", status: "PENDING" },
+        { 
+          workflowId: workflow.id, 
+          title: "Create AD & Email Account", 
+          taskType: "IT_ACCESS", 
+          status: "PENDING",
+          cost: 350 // Software seat cost
+        },
+        { 
+          workflowId: workflow.id, 
+          title: "Order Laptop & Peripherals", 
+          taskType: "HARDWARE", 
+          status: "PENDING",
+          cost: 2500 // Hardware cost
+        },
+        { 
+          workflowId: workflow.id, 
+          title: "Setup Payroll", 
+          taskType: "HR_ADMIN", 
+          status: "PENDING",
+          cost: 0 // Admin tasks are zero cost
+        },
       ]);
     });
 

@@ -6,7 +6,6 @@ import { relations } from "drizzle-orm";
 export const roleEnum = pgEnum("role", ["HR", "IT", "MANAGER", "EMPLOYEE"]);
 export const taskTypeEnum = pgEnum("task_type", ["IT_ACCESS", "HARDWARE", "TRAINING", "HR_ADMIN"]);
 export const statusEnum = pgEnum("status", ["PENDING", "IN_PROGRESS", "BLOCKED", "DONE"]);
-// === NEW: Status for the Approval Flow ===
 export const requestStatusEnum = pgEnum("request_status", ["PENDING", "APPROVED", "REJECTED", "PROVISIONED", "FAILED"]);
 
 // Organizations (Tenants / KMUs) 
@@ -57,10 +56,11 @@ export const workflowTasks = pgTable("workflow_tasks", {
   taskType: taskTypeEnum("task_type").notNull(),
   assignedUserId: uuid("assigned_user_id").references(() => users.id),
   status: statusEnum("status").default("PENDING").notNull(),
+  cost: integer("cost").default(0), // <--- THE NEW COST COLUMN
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// === UPDATED: Role Profiles (Added Defaults for Microsoft Push) ===
+// Role Profiles (Added Defaults for Microsoft Push)
 export const roleProfiles = pgTable("role_profiles", {
   id: uuid("id").primaryKey().defaultRandom(),
   orgId: uuid("org_id").notNull().references(() => organizations.id),
@@ -76,26 +76,23 @@ export const roleProfiles = pgTable("role_profiles", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// === NEW: Hire Requests (The Approval Pipeline) ===
+// Hire Requests (The Approval Pipeline)
 export const hireRequests = pgTable("hire_requests", {
   id: uuid("id").primaryKey().defaultRandom(),
   orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: 'cascade' }),
   profileId: uuid("profile_id").notNull().references(() => roleProfiles.id),
-  requesterId: uuid("requester_id").notNull().references(() => users.id), // The HR Rep who requested it
+  requesterId: uuid("requester_id").notNull().references(() => users.id), 
   
-  // New Hire Details
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
-  personalEmail: text("personal_email").notNull(), // Where to send initial credentials
+  personalEmail: text("personal_email").notNull(), 
   jobTitle: text("job_title").notNull(),
   department: text("department").notNull(),
   
-  // Microsoft Provisioning Details
   requestedLicenses: text("requested_licenses"), 
   requestedGroups: text("requested_groups"), 
   isSpecialHire: boolean("is_special_hire").default(false).notNull(), 
   
-  // State Machine
   status: requestStatusEnum("status").default("PENDING").notNull(),
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -132,6 +129,16 @@ export const organizationIntegrations = pgTable("organization_integrations", {
   clientSecret: text("client_secret"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Audit Logs
+export const auditLogs = pgTable("audit_logs", {
+  id: uuid("id").primaryKey().notNull(),
+  orgId: uuid("org_id").notNull(),
+  actorName: text("actor_name").notNull(), 
+  actionType: text("action_type").notNull(), 
+  description: text("description").notNull(), 
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // =====================
@@ -175,16 +182,3 @@ export const hireRequestsRelations = relations(hireRequests, ({ one }) => ({
   profile: one(roleProfiles, { fields: [hireRequests.profileId], references: [roleProfiles.id] }),
   requester: one(users, { fields: [hireRequests.requesterId], references: [users.id] }),
 }));
-
-// =====================
-// === AUDIT LOGS ===
-// =====================
-
-export const auditLogs = pgTable("audit_logs", {
-  id: uuid("id").primaryKey().notNull(),
-  orgId: uuid("org_id").notNull(),
-  actorName: text("actor_name").notNull(), // The person who clicked the button
-  actionType: text("action_type").notNull(), // e.g., "TERMINATION", "SETTINGS_UPDATE"
-  description: text("description").notNull(), // e.g., "Revoked access for John Doe"
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
