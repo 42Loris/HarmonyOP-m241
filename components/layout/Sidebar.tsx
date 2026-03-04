@@ -15,7 +15,8 @@ import {
   LogOut,
   ShieldCheck,
   Contact,
-  History // <-- NEW ICON FOR AUDIT LOGS
+  History,
+  PieChart // <-- NEW ICON FOR FINANCIALS
 } from "lucide-react";
 import { signOutAction } from "@/actions/auth";
 
@@ -36,8 +37,9 @@ export default function Sidebar({ userRole, userName, orgName }: SidebarProps) {
     { name: "IT Tasks", href: "/app/tasks", icon: CheckSquare },
     { name: "HR Tasks", href: "/app/hr-tasks", icon: ClipboardCheck },
     { name: "Profiles", href: "/app/profiles", icon: Users },
+    { name: "Financials", href: "/app/financials", icon: PieChart }, // <-- NEW DIRECT LINK
     { name: "Settings", href: "/app/settings", icon: Settings },
-    { name: "Audit Logs", href: "/app/audit-logs", icon: History }, // <-- NEW DIRECT LINK
+    { name: "Audit Logs", href: "/app/audit-logs", icon: History }, 
   ];
 
   const employeeNav = [

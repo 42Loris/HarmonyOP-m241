@@ -40,7 +40,7 @@ export default async function FinancialsPage() {
       totalSpend += taskCost;
 
       if (task.taskType === "HARDWARE") hardwareSpend += taskCost;
-      if (task.taskType === "SOFTWARE" || task.taskType === "IT_ACCESS") softwareSpend += taskCost;
+      if (task.taskType === "IT_ACCESS") softwareSpend += taskCost; // <--- THE FIX: Removed the "SOFTWARE" check
 
       if (taskCost > 0) {
         expensesList.push({
