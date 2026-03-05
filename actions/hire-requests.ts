@@ -54,7 +54,6 @@ export async function createHireRequestAction(formData: FormData) {
   if (!profile) return { error: "Profile not found" };
 
   try {
-    // Save the Pending Request to Database
     await db.insert(hireRequests).values({
       orgId: dbUser.orgId,
       profileId,
@@ -70,7 +69,6 @@ export async function createHireRequestAction(formData: FormData) {
       status: "PENDING"
     });
 
-    // Send Email Notification via Resend (To the Manager)
     await resend.emails.send({
       from: 'Harmony OP <onboarding@resend.dev>', 
       to: 'dpangione@online.gibz.ch', 
@@ -109,7 +107,6 @@ export async function approveHireRequestAction(formData: FormData) {
   if (!requestId) return { error: "Missing ID" };
 
   try {
-    // 1. Fetch the full request and the Organization's MS Credentials
     const request = await db.query.hireRequests.findFirst({
       where: eq(hireRequests.id, requestId),
       with: { profile: { with: { defaultTasks: true } } }
@@ -125,7 +122,6 @@ export async function approveHireRequestAction(formData: FormData) {
       return { error: "Microsoft Integration missing. IT must connect tenant first." };
     }
 
-    // 2. Authenticate with Microsoft Graph (Get Bearer Token)
     const tokenRes = await fetch(`https://login.microsoftonline.com/${integration.tenantId}/oauth2/v2.0/token`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -139,7 +135,6 @@ export async function approveHireRequestAction(formData: FormData) {
     const { access_token } = await tokenRes.json();
     if (!access_token) throw new Error("Failed to authenticate with Microsoft Graph");
 
-    // 3. Fetch live Domain, SKUs, and Groups
     const headers = { Authorization: `Bearer ${access_token}`, "Content-Type": "application/json" };
     
     const domainsRes = await fetch(`https://graph.microsoft.com/v1.0/domains`, { headers });
@@ -152,7 +147,6 @@ export async function approveHireRequestAction(formData: FormData) {
     const groupsRes = await fetch(`https://graph.microsoft.com/v1.0/groups?$select=id,displayName`, { headers });
     const groupsData = await groupsRes.json();
 
-    // 4. Generate Corporate Email and Secure Temporary Password
     const mailNickname = `${request.firstName.toLowerCase().replace(/\s+/g, '')}.${request.lastName.toLowerCase().replace(/\s+/g, '')}`;
     const userPrincipalName = `${mailNickname}@${defaultDomain}`;
     const tempPassword = `Hrmny!${Math.random().toString(36).slice(-4).toUpperCase()}${Math.random().toString(36).slice(-3)}`;
@@ -168,7 +162,6 @@ export async function approveHireRequestAction(formData: FormData) {
         displayName: `${request.firstName} ${request.lastName}`,
         mailNickname: mailNickname,
         userPrincipalName: userPrincipalName,
-        otherMails: [userPrincipalName], // <--- THE MAGIC FIX: Forces Azure to cache the email instantly!
         usageLocation: "CH", 
         passwordProfile: {
           forceChangePasswordNextSignIn: true,
@@ -184,6 +177,19 @@ export async function approveHireRequestAction(formData: FormData) {
     }
 
     const msUserId = msUser.id;
+
+    // ==========================================
+    // THE DEFINITIVE FIX: EXPLICITLY PATCH THE MAIL
+    // ==========================================
+    // We immediately hit MS Graph again to forcefully inject the primary email.
+    // This bypasses the Exchange server delay and guarantees Supabase gets the email.
+    await fetch(`https://graph.microsoft.com/v1.0/users/${msUserId}`, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({ 
+        mail: userPrincipalName 
+      })
+    });
 
     // ==========================================
     // PHASE 2: ASSIGN LICENSES
@@ -251,7 +257,6 @@ export async function approveHireRequestAction(formData: FormData) {
       startDate: new Date(),
     }).returning();
 
-    // Generate the Kanban tasks
     if (request.profile?.defaultTasks && request.profile.defaultTasks.length > 0) {
       const tasksToInsert = request.profile.defaultTasks.map(task => ({
         workflowId: newWorkflow.id,
