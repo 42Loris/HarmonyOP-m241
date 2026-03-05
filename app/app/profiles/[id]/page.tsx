@@ -10,7 +10,7 @@ import { addProfileTaskAction, deleteProfileTaskAction } from "@/actions/profile
 import { addProfileMeetingAction, deleteProfileMeetingAction } from "@/actions/profile-meetings";
 import { updateProfileProvisioningAction } from "@/actions/profile-provisioning";
 import SubmitButton from "@/components/ui/SubmitButton"; 
-import DeleteIconButton from "@/components/ui/DeleteIconButton";
+import DeleteIconButton from "@/components/ui/DeleteIconButton"; // <--- Ensure this is imported!
 
 export default async function ProfileDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -152,11 +152,11 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
                         <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
                           {task.taskType.replace("_", " ")}
                         </span>
+                        {/* === FIXED: Only one animated delete button === */}
                         <form action={deleteProfileTaskAction as any}>
+                          <input type="hidden" name="id" value={task.id} />
+                          <input type="hidden" name="profileId" value={profile.id} />
                           <DeleteIconButton />
-                          <button type="submit" className="text-slate-300 hover:text-red-500 transition-colors">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
                         </form>
                       </div>
                     </li>
@@ -182,12 +182,11 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
                           <p className="text-xs text-slate-500">Host: {meeting.hostEmail} • {meeting.durationMinutes} mins</p>
                         </div>
                       </div>
+                      {/* === FIXED: Only one animated delete button === */}
                       <form action={deleteProfileMeetingAction as any}>
                         <input type="hidden" name="id" value={meeting.id} />
                         <input type="hidden" name="profileId" value={profile.id} />
-                        <button type="submit" className="text-slate-300 hover:text-red-500 transition-colors">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        <DeleteIconButton />
                       </form>
                     </li>
                   ))}
@@ -232,7 +231,6 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
                 </div>
               </div>
               
-              {/* === REPLACED BUTTON === */}
               <SubmitButton 
                 defaultText="Save Standard Access" 
                 loadingText="Saving..." 
@@ -261,7 +259,6 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
                 </select>
               </div>
               
-              {/* === REPLACED BUTTON === */}
               <SubmitButton 
                 defaultText="Save Task" 
                 loadingText="Saving..." 
@@ -301,7 +298,6 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
                 </select>
               </div>
               
-              {/* === REPLACED BUTTON === */}
               <SubmitButton 
                 defaultText="Add Meeting to Template" 
                 loadingText="Adding..." 
