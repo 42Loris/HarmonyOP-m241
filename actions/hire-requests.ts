@@ -73,7 +73,7 @@ export async function createHireRequestAction(formData: FormData) {
     // Send Email Notification via Resend (To the Manager)
     await resend.emails.send({
       from: 'Harmony OP <onboarding@resend.dev>', 
-      to: 'dpangione@online.gibz.ch', // <--- CHANGE THIS FOR PROD LATER
+      to: 'dpangione@online.gibz.ch', 
       subject: `Action Required: New Hire Approval for ${firstName} ${lastName}`,
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
@@ -168,7 +168,8 @@ export async function approveHireRequestAction(formData: FormData) {
         displayName: `${request.firstName} ${request.lastName}`,
         mailNickname: mailNickname,
         userPrincipalName: userPrincipalName,
-        usageLocation: "CH", // Assuming Switzerland! Change to "US" if Loris used a US tenant.
+        otherMails: [userPrincipalName], // <--- THE MAGIC FIX: Forces Azure to cache the email instantly!
+        usageLocation: "CH", 
         passwordProfile: {
           forceChangePasswordNextSignIn: true,
           password: tempPassword
@@ -223,7 +224,7 @@ export async function approveHireRequestAction(formData: FormData) {
     }
 
     // ==========================================
-    // PHASE 4: START HARMONY INTERNAL WORKFLOW (Self-Healing)
+    // PHASE 4: START HARMONY INTERNAL WORKFLOW
     // ==========================================
     const [newInternalUser] = await db.insert(users).values({
       orgId: request.orgId,
