@@ -63,7 +63,7 @@ export async function offboardEmployeeAction(employeeId: string) {
       id: crypto.randomUUID(),
       orgId: dbAdmin.orgId,
       newHireId: targetEmployee.id,
-      profileId: "OFFBOARDING", 
+      // profileId: "OFFBOARDING" <--- DELETED THIS LINE TO FIX THE UUID ERROR!
       roleTitle: "Offboarding Process",
       department: "Terminated",
       startDate: new Date(),
