@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ShieldAlert, ShieldCheck } from "lucide-react";
-
+import SubmitButton from "@/components/ui/SubmitButton";
 export default function NewHireForm({ 
   profiles, 
   msLicenses, 
@@ -168,9 +168,7 @@ export default function NewHireForm({
       </section>
 
       <div className="pt-4 border-t border-slate-100">
-        <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">
-          Submit Request for Manager Approval
-        </button>
+      <SubmitButton defaultText="Submit Request for Manager Approval" loadingText="Submitting..." className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold" />
       </div>
     </form>
   );

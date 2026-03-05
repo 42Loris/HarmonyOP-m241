@@ -9,6 +9,7 @@ import { ArrowLeft, Plus, Laptop, Users, GraduationCap, ClipboardList, Calendar,
 import { addProfileTaskAction, deleteProfileTaskAction } from "@/actions/profile-tasks";
 import { addProfileMeetingAction, deleteProfileMeetingAction } from "@/actions/profile-meetings";
 import { updateProfileProvisioningAction } from "@/actions/profile-provisioning";
+import SubmitButton from "@/components/ui/SubmitButton"; // <--- NEW IMPORT
 
 export default async function ProfileDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -78,7 +79,6 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
     }
   };
 
-  // Helper arrays to pre-check boxes
   const currentLicenses = profile.defaultLicenses ? profile.defaultLicenses.split(", ") : [];
   const currentGroups = profile.defaultGroups ? profile.defaultGroups.split(", ") : [];
 
@@ -100,7 +100,6 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
         {/* LEFT COLUMN: Lists */}
         <div className="md:col-span-2 space-y-8">
           
-          {/* === NEW: Provisioning Defaults Display === */}
           <section>
             <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-green-600" /> Standard System Access
@@ -135,7 +134,6 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
             </div>
           </section>
 
-          {/* Tasks List (Unchanged) */}
           <section>
             <h2 className="text-lg font-bold text-slate-800 mb-4">Default Onboarding Tasks</h2>
             <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
@@ -168,7 +166,6 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
             </div>
           </section>
 
-          {/* Meetings List (Unchanged) */}
           <section>
             <h2 className="text-lg font-bold text-slate-800 mb-4">Auto-Scheduled Meetings</h2>
             <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
@@ -204,7 +201,6 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
         {/* RIGHT COLUMN: Forms */}
         <div className="space-y-6">
 
-          {/* === NEW: Set Default Provisioning Form === */}
           <div className="bg-green-50/50 border border-green-200 rounded-lg p-5">
             <h3 className="font-bold text-green-900 mb-4 flex items-center gap-2">
               <ShieldCheck className="h-4 w-4" /> Standard Access
@@ -236,11 +232,15 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
                 </div>
               </div>
               
-              <button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-md text-sm font-medium transition-colors">Save Standard Access</button>
+              {/* === REPLACED BUTTON === */}
+              <SubmitButton 
+                defaultText="Save Standard Access" 
+                loadingText="Saving..." 
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-md text-sm font-medium" 
+              />
             </form>
           </div>
           
-          {/* Add Task Form (Unchanged) */}
           <div className="bg-slate-50 border border-slate-200 rounded-lg p-5">
             <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
               <Plus className="h-4 w-4" /> Add Task
@@ -260,11 +260,16 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
                   <option value="TRAINING">Training</option>
                 </select>
               </div>
-              <button type="submit" className="w-full bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-md text-sm font-medium">Save Task</button>
+              
+              {/* === REPLACED BUTTON === */}
+              <SubmitButton 
+                defaultText="Save Task" 
+                loadingText="Saving..." 
+                className="w-full bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-md text-sm font-medium" 
+              />
             </form>
           </div>
 
-          {/* Add Meeting Form (Unchanged) */}
           <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-5">
             <h3 className="font-bold text-blue-900 mb-4 flex items-center gap-2">
               <Calendar className="h-4 w-4" /> Schedule Meeting
@@ -295,7 +300,13 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
                   <option value="90">90 Minutes</option>
                 </select>
               </div>
-              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium">Add Meeting to Template</button>
+              
+              {/* === REPLACED BUTTON === */}
+              <SubmitButton 
+                defaultText="Add Meeting to Template" 
+                loadingText="Adding..." 
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium" 
+              />
             </form>
           </div>
 
