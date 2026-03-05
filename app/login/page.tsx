@@ -39,7 +39,10 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'azure',
       options: {
-        scopes: 'email openid profile', // <--- Perfectly placed!
+        scopes: 'email openid profile',
+        queryParams: {
+          prompt: 'consent', // <--- NEU: Zwingt Azure, das Token und die Claims komplett neu zu laden!
+        },
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
