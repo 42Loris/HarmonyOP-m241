@@ -9,7 +9,8 @@ import { ArrowLeft, Plus, Laptop, Users, GraduationCap, ClipboardList, Calendar,
 import { addProfileTaskAction, deleteProfileTaskAction } from "@/actions/profile-tasks";
 import { addProfileMeetingAction, deleteProfileMeetingAction } from "@/actions/profile-meetings";
 import { updateProfileProvisioningAction } from "@/actions/profile-provisioning";
-import SubmitButton from "@/components/ui/SubmitButton"; // <--- NEW IMPORT
+import SubmitButton from "@/components/ui/SubmitButton"; 
+import DeleteIconButton from "@/components/ui/DeleteIconButton";
 
 export default async function ProfileDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -152,8 +153,7 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
                           {task.taskType.replace("_", " ")}
                         </span>
                         <form action={deleteProfileTaskAction as any}>
-                          <input type="hidden" name="id" value={task.id} />
-                          <input type="hidden" name="profileId" value={profile.id} />
+                          <DeleteIconButton />
                           <button type="submit" className="text-slate-300 hover:text-red-500 transition-colors">
                             <Trash2 className="h-4 w-4" />
                           </button>
