@@ -6,6 +6,7 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { Users, Mail, Briefcase } from "lucide-react";
 import OffboardButton from "./OffboardButton";
+import ResetPasswordButton from "@/components/ui/ResetPasswordButton"; // <--- NEW IMPORT
 
 export default async function EmployeeDirectoryPage() {
   const supabase = await createClient();
@@ -68,8 +69,9 @@ export default async function EmployeeDirectoryPage() {
                   </div>
                 </div>
                 
-                {/* The Executioner Button */}
-                <div className="shrink-0">
+                {/* === NEW: Action Buttons Container === */}
+                <div className="shrink-0 flex flex-col items-end gap-3 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-slate-100">
+                  <ResetPasswordButton employeeId={employee.id} employeeName={employee.name} />
                   <OffboardButton employeeId={employee.id} employeeName={employee.name} />
                 </div>
               </div>
