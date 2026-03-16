@@ -1,8 +1,8 @@
-# Harmony OP ⚙️
+# Harmony OP
 
 Harmony OP is an enterprise-grade, automated Employee Onboarding and Provisioning platform. It bridges the gap between IT, HR, and Management by directly integrating with Microsoft Entra ID (Active Directory) to automate role-based access, hardware provisioning, and Microsoft 365 licensing the moment a hire is approved.
 
-## ✨ Key Features
+## Key Features
 
 * **"God-Mode" Auto-Provisioning:** Creates users directly in Microsoft Entra, assigns secure temporary passwords, attaches 365 licenses, and joins security groups automatically.
 * **Smart HR Request Forms:** Dynamic forms that pull live Microsoft tenant data and filter out duplicate license assignments based on predefined role templates.
@@ -11,7 +11,7 @@ Harmony OP is an enterprise-grade, automated Employee Onboarding and Provisionin
 * **Automated Email Delivery:** Seamlessly dispatches welcome packages and manager approval notifications using Resend.
 * **Blazing Fast UI:** Achieves perfect Vercel Speed Insight scores using React 19 `<Suspense>` streaming boundaries.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 * **Framework:** Next.js 15 (App Router, React 19)
 * **Database:** PostgreSQL hosted on Supabase
