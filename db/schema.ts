@@ -57,6 +57,12 @@ export const workflowTasks = pgTable("workflow_tasks", {
   assignedUserId: uuid("assigned_user_id").references(() => users.id),
   status: statusEnum("status").default("PENDING").notNull(),
   cost: integer("cost").default(0), // <--- THE NEW COST COLUMN
+  
+  // JIT Provisioning & Training-Gated Access
+  requiresApproval: boolean("requires_approval").default(false).notNull(),
+  approverEmail: text("approver_email"),
+  provisionEntraGroupOnComplete: text("provision_entra_group_on_complete"),
+  
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
@@ -105,6 +111,12 @@ export const profileTasks = pgTable("profile_tasks", {
   profileId: uuid("profile_id").notNull().references(() => roleProfiles.id, { onDelete: 'cascade' }),
   title: text("title").notNull(), 
   taskType: text("task_type").notNull(), 
+  
+  // JIT Provisioning & Training-Gated Access
+  requiresApproval: boolean("requires_approval").default(false).notNull(),
+  approverEmail: text("approver_email"),
+  provisionEntraGroupOnComplete: text("provision_entra_group_on_complete"),
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

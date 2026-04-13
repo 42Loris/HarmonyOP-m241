@@ -263,6 +263,9 @@ export async function approveHireRequestAction(formData: FormData) {
         title: task.title,
         taskType: task.taskType as any,
         status: "PENDING" as const,
+        requiresApproval: task.requiresApproval,
+        approverEmail: task.approverEmail,
+        provisionEntraGroupOnComplete: task.provisionEntraGroupOnComplete,
       }));
       await db.insert(workflowTasks).values(tasksToInsert);
     }

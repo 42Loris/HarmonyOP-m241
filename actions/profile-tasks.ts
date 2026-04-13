@@ -10,6 +10,9 @@ export async function addProfileTaskAction(formData: FormData) {
   const profileId = formData.get("profileId") as string;
   const title = formData.get("title") as string;
   const taskType = formData.get("taskType") as string;
+  const requiresApproval = formData.get("requiresApproval") === "on";
+  const approverEmail = formData.get("approverEmail") as string;
+  const provisionEntraGroupOnComplete = formData.get("provisionEntraGroupOnComplete") as string;
 
   if (!profileId || !title || !taskType) return { error: "Missing fields" };
 
@@ -18,6 +21,9 @@ export async function addProfileTaskAction(formData: FormData) {
       profileId,
       title,
       taskType,
+      requiresApproval,
+      approverEmail,
+      provisionEntraGroupOnComplete: provisionEntraGroupOnComplete || null,
     });
 
     revalidatePath(`/app/profiles/${profileId}`);
