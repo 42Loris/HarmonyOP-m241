@@ -131,6 +131,17 @@ export const profileMeetings = pgTable("profile_meetings", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Profile Hardware (Procurement & Financials)
+export const profileHardware = pgTable("profile_hardware", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  profileId: uuid("profile_id").notNull().references(() => roleProfiles.id, { onDelete: 'cascade' }),
+  category: text("category").notNull(), // NOTEBOOK, KEYBOARD, etc.
+  url: text("url").notNull(),
+  itemName: text("item_name").notNull(),
+  price: text("price").notNull(), // Using text to store decimal string for numeric precision
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Integrations Table
 export const organizationIntegrations = pgTable("organization_integrations", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -174,6 +185,7 @@ export const roleProfilesRelations = relations(roleProfiles, ({ one, many }) => 
   organization: one(organizations, { fields: [roleProfiles.orgId], references: [organizations.id] }),
   defaultTasks: many(profileTasks),
   defaultMeetings: many(profileMeetings), 
+  defaultHardware: many(profileHardware),
   hireRequests: many(hireRequests),
 }));
 
@@ -183,6 +195,10 @@ export const profileTasksRelations = relations(profileTasks, ({ one }) => ({
 
 export const profileMeetingsRelations = relations(profileMeetings, ({ one }) => ({
   profile: one(roleProfiles, { fields: [profileMeetings.profileId], references: [roleProfiles.id] }),
+}));
+
+export const profileHardwareRelations = relations(profileHardware, ({ one }) => ({
+  profile: one(roleProfiles, { fields: [profileHardware.profileId], references: [roleProfiles.id] }),
 }));
 
 export const organizationIntegrationsRelations = relations(organizationIntegrations, ({ one }) => ({

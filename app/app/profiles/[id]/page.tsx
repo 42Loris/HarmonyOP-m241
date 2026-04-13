@@ -5,12 +5,25 @@ import { roleProfiles, organizationIntegrations, users } from "@/db/schema";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Plus, Laptop, Users, GraduationCap, ClipboardList, Calendar, Trash2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Plus, Laptop, Users, GraduationCap, ClipboardList, Calendar, ShieldCheck } from "lucide-react";
 import { addProfileTaskAction, deleteProfileTaskAction } from "@/actions/profile-tasks";
 import { addProfileMeetingAction, deleteProfileMeetingAction } from "@/actions/profile-meetings";
 import { updateProfileProvisioningAction } from "@/actions/profile-provisioning";
+import { deleteProfileHardwareAction } from "@/actions/profile-hardware";
+import HardwareProcurementForm from "@/components/profiles/HardwareProcurementForm";
 import SubmitButton from "@/components/ui/SubmitButton"; 
 import DeleteIconButton from "@/components/ui/DeleteIconButton"; // <--- Ensure this is imported!
+import { ShoppingCart, ExternalLink } from "lucide-react";
+
+interface MSGroup {
+  id: string;
+  displayName: string;
+}
+
+interface MSLicense {
+  skuId: string;
+  skuPartNumber: string;
+}
 
 export default async function ProfileDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -25,6 +38,7 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
     with: {
       defaultTasks: true,
       defaultMeetings: true, 
+      defaultHardware: true,
     },
   });
 
@@ -35,8 +49,8 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
     where: eq(organizationIntegrations.orgId, dbUser!.orgId),
   });
 
-  let msGroups: any[] = [];
-  let msLicenses: any[] = [];
+  let msGroups: MSGroup[] = [];
+  let msLicenses: MSLicense[] = [];
 
   if (integration?.clientId && integration?.clientSecret) {
     try {
@@ -50,7 +64,8 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
           grant_type: "client_credentials",
         }),
       });
-      const { access_token } = await tokenRes.json();
+      const tokenData = await tokenRes.json();
+      const access_token = tokenData.access_token as string;
 
       if (access_token) {
         const groupsRes = await fetch(`https://graph.microsoft.com/v1.0/groups?$top=100&$select=id,displayName`, {
@@ -82,6 +97,8 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
 
   const currentLicenses = profile.defaultLicenses ? profile.defaultLicenses.split(", ") : [];
   const currentGroups = profile.defaultGroups ? profile.defaultGroups.split(", ") : [];
+
+  const totalHardwareCost = profile.defaultHardware.reduce((sum, item) => sum + parseFloat(item.price), 0);
 
   return (
     <div className="p-8 max-w-6xl mx-auto min-h-screen">
@@ -136,6 +153,47 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
           </section>
 
           <section>
+            <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5 text-blue-600" /> Hardware Procurement & Financials
+            </h2>
+            <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+              {profile.defaultHardware.length === 0 ? (
+                <div className="p-8 text-center text-slate-500 text-sm italic">No hardware requirements defined yet.</div>
+              ) : (
+                <>
+                  <ul className="divide-y divide-slate-100">
+                    {profile.defaultHardware.map(item => (
+                      <li key={item.id} className="p-4 flex items-center justify-between hover:bg-slate-50 group">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-slate-100 rounded-md"><Laptop className="h-4 w-4 text-slate-500" /></div>
+                          <div>
+                            <p className="font-medium text-slate-700 text-sm line-clamp-1">{item.itemName}</p>
+                            <p className="text-[10px] text-slate-400 flex items-center gap-1">
+                              {item.category} • <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 flex items-center gap-0.5"><ExternalLink className="h-2 w-2" /> View Link</a>
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="font-bold text-blue-600 text-sm">CHF {parseFloat(item.price).toFixed(2)}</span>
+                          <form action={deleteProfileHardwareAction}>
+                            <input type="hidden" name="id" value={item.id} />
+                            <input type="hidden" name="profileId" value={profile.id} />
+                            <DeleteIconButton />
+                          </form>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="bg-slate-50 p-4 border-t border-slate-100 flex justify-between items-center">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Estimated Onboarding Cost</span>
+                    <span className="text-xl font-black text-slate-900">CHF {totalHardwareCost.toFixed(2)}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </section>
+
+          <section>
             <h2 className="text-lg font-bold text-slate-800 mb-4">Default Onboarding Tasks</h2>
             <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
               {profile.defaultTasks.length === 0 ? (
@@ -160,7 +218,7 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
                           {task.taskType.replace("_", " ")}
                         </span>
                         {/* === FIXED: Only one animated delete button === */}
-                        <form action={deleteProfileTaskAction as any}>
+                        <form action={deleteProfileTaskAction}>
                           <input type="hidden" name="id" value={task.id} />
                           <input type="hidden" name="profileId" value={profile.id} />
                           <DeleteIconButton />
@@ -190,7 +248,7 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
                         </div>
                       </div>
                       {/* === FIXED: Only one animated delete button === */}
-                      <form action={deleteProfileMeetingAction as any}>
+                      <form action={deleteProfileMeetingAction}>
                         <input type="hidden" name="id" value={meeting.id} />
                         <input type="hidden" name="profileId" value={profile.id} />
                         <DeleteIconButton />
@@ -211,13 +269,13 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
             <h3 className="font-bold text-green-900 mb-4 flex items-center gap-2">
               <ShieldCheck className="h-4 w-4" /> Standard Access
             </h3>
-            <form action={updateProfileProvisioningAction as any} className="space-y-4">
+            <form action={updateProfileProvisioningAction} className="space-y-4">
               <input type="hidden" name="profileId" value={profile.id} />
               
               <div>
                 <label className="block text-xs font-medium text-green-900 mb-1">Default MS Licenses</label>
                 <div className="w-full border border-green-200 rounded-md bg-white max-h-32 overflow-y-auto p-2 space-y-1">
-                  {msLicenses.map((lic: any) => (
+                  {msLicenses.map((lic) => (
                     <label key={lic.skuId} className="flex items-start gap-2 p-1 hover:bg-slate-50 rounded cursor-pointer">
                       <input type="checkbox" name="msLicenses" value={lic.skuPartNumber} defaultChecked={currentLicenses.includes(lic.skuPartNumber)} className="mt-0.5 h-3.5 w-3.5 text-green-600 rounded border-slate-300" />
                       <span className="text-xs text-slate-700">{lic.skuPartNumber}</span>
@@ -229,7 +287,7 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
               <div>
                 <label className="block text-xs font-medium text-green-900 mb-1">Default MS Groups</label>
                 <div className="w-full border border-green-200 rounded-md bg-white max-h-32 overflow-y-auto p-2 space-y-1">
-                  {msGroups.map((group: any) => (
+                  {msGroups.map((group) => (
                     <label key={group.id} className="flex items-start gap-2 p-1 hover:bg-slate-50 rounded cursor-pointer">
                       <input type="checkbox" name="msGroups" value={group.displayName} defaultChecked={currentGroups.includes(group.displayName)} className="mt-0.5 h-3.5 w-3.5 text-green-600 rounded border-slate-300" />
                       <span className="text-xs text-slate-700">{group.displayName}</span>
@@ -250,7 +308,7 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
             <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
               <Plus className="h-4 w-4" /> Add Task
             </h3>
-            <form action={addProfileTaskAction as any} className="space-y-4">
+            <form action={addProfileTaskAction} className="space-y-4">
               <input type="hidden" name="profileId" value={profile.id} />
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1">Task Title</label>
@@ -280,7 +338,7 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
                 <label className="block text-xs font-medium text-slate-700 mb-1">Entra Group to Unlock (Optional)</label>
                 <select name="provisionEntraGroupOnComplete" className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white">
                   <option value="">None (Just mark complete)</option>
-                  {msGroups.map((group: any) => (
+                  {msGroups.map((group) => (
                     <option key={group.id} value={group.id}>{group.displayName}</option>
                   ))}
                 </select>
@@ -299,7 +357,7 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
             <h3 className="font-bold text-blue-900 mb-4 flex items-center gap-2">
               <Calendar className="h-4 w-4" /> Schedule Meeting
             </h3>
-            <form action={addProfileMeetingAction as any} className="space-y-4">
+            <form action={addProfileMeetingAction} className="space-y-4">
               <input type="hidden" name="profileId" value={profile.id} />
               <div>
                 <label className="block text-xs font-medium text-blue-900 mb-1">Meeting Title</label>
@@ -333,6 +391,8 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
               />
             </form>
           </div>
+
+          <HardwareProcurementForm profileId={profile.id} />
 
         </div>
       </div>
