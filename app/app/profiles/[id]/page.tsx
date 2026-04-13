@@ -175,7 +175,7 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
                         </div>
                         <div className="flex items-center gap-4">
                           <span className="font-bold text-blue-600 text-sm">CHF {parseFloat(item.price).toFixed(2)}</span>
-                          <form action={deleteProfileHardwareAction}>
+                          <form action={deleteProfileHardwareAction as unknown as (payload: FormData) => void}>
                             <input type="hidden" name="id" value={item.id} />
                             <input type="hidden" name="profileId" value={profile.id} />
                             <DeleteIconButton />
@@ -218,7 +218,7 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
                           {task.taskType.replace("_", " ")}
                         </span>
                         {/* === FIXED: Only one animated delete button === */}
-                        <form action={deleteProfileTaskAction}>
+                        <form action={deleteProfileTaskAction as unknown as (payload: FormData) => void}>
                           <input type="hidden" name="id" value={task.id} />
                           <input type="hidden" name="profileId" value={profile.id} />
                           <DeleteIconButton />
@@ -248,7 +248,7 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
                         </div>
                       </div>
                       {/* === FIXED: Only one animated delete button === */}
-                      <form action={deleteProfileMeetingAction}>
+                      <form action={deleteProfileMeetingAction as unknown as (payload: FormData) => void}>
                         <input type="hidden" name="id" value={meeting.id} />
                         <input type="hidden" name="profileId" value={profile.id} />
                         <DeleteIconButton />
@@ -269,7 +269,7 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
             <h3 className="font-bold text-green-900 mb-4 flex items-center gap-2">
               <ShieldCheck className="h-4 w-4" /> Standard Access
             </h3>
-            <form action={updateProfileProvisioningAction} className="space-y-4">
+            <form action={updateProfileProvisioningAction as unknown as (payload: FormData) => void} className="space-y-4">
               <input type="hidden" name="profileId" value={profile.id} />
               
               <div>
@@ -308,7 +308,7 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
             <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
               <Plus className="h-4 w-4" /> Add Task
             </h3>
-            <form action={addProfileTaskAction} className="space-y-4">
+            <form action={addProfileTaskAction as unknown as (payload: FormData) => void} className="space-y-4">
               <input type="hidden" name="profileId" value={profile.id} />
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1">Task Title</label>
@@ -357,7 +357,7 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
             <h3 className="font-bold text-blue-900 mb-4 flex items-center gap-2">
               <Calendar className="h-4 w-4" /> Schedule Meeting
             </h3>
-            <form action={addProfileMeetingAction} className="space-y-4">
+            <form action={addProfileMeetingAction as unknown as (payload: FormData) => void} className="space-y-4">
               <input type="hidden" name="profileId" value={profile.id} />
               <div>
                 <label className="block text-xs font-medium text-blue-900 mb-1">Meeting Title</label>
