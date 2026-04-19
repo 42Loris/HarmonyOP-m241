@@ -52,17 +52,17 @@ export default function ActiveWorkflowsTable({ data }: { data: WorkflowData[] })
           {data.map((row) => {
             // Get ALL IT and Hardware tasks for this employee
             const itTasks = row.tasks.filter(
-              (t: any) => t.taskType === "IT_ACCESS" || t.taskType === "HARDWARE"
+              (t) => t.taskType === "IT_ACCESS" || t.taskType === "HARDWARE"
             );
             
             // Calculate the aggregate IT status
             let itStatus: TaskStatus = "PENDING";
             if (itTasks.length > 0) {
-              if (itTasks.some((t: any) => t.status === "BLOCKED")) {
+              if (itTasks.some((t) => t.status === "BLOCKED")) {
                 itStatus = "BLOCKED"; // Critical priority: if one is blocked, the whole IT flow is blocked
-              } else if (itTasks.every((t: any) => t.status === "DONE")) {
+              } else if (itTasks.every((t) => t.status === "DONE")) {
                 itStatus = "DONE"; // Only DONE if BOTH AD account and Laptop are done
-              } else if (itTasks.some((t: any) => t.status === "IN_PROGRESS" || t.status === "DONE")) {
+              } else if (itTasks.some((t) => t.status === "IN_PROGRESS" || t.status === "DONE")) {
                 itStatus = "IN_PROGRESS"; // If some work has started, it's in progress
               }
             }

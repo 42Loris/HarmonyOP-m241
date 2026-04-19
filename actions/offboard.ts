@@ -104,7 +104,7 @@ export async function offboardEmployeeAction(employeeId: string) {
 
     revalidatePath("/app", "layout");
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Offboarding failed:", error);
     return { error: "Failed to offboard employee." };
   }

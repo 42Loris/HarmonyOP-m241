@@ -112,8 +112,8 @@ export async function approveTaskAction(taskId: string) {
     
     return { success: true };
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Task approval failed:", error);
-    return { error: error.message || "Failed to approve task" };
+    return { error: error instanceof Error ? error.message : "Failed to approve task" };
   }
 }

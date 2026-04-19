@@ -63,7 +63,7 @@ export default async function HireRequestsDashboard() {
         
         {pendingRequests.length === 0 ? (
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center text-slate-500">
-            No pending requests at the moment. You're all caught up!
+            No pending requests at the moment. You&apos;re all caught up!
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4">

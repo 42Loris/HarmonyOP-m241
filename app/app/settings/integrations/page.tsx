@@ -32,7 +32,7 @@ export default async function IntegrationsPage() {
     <div className="p-8 max-w-4xl mx-auto min-h-screen">
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900">Integrations</h1>
-        <p className="text-sm text-slate-500 mt-1">Connect Harmony OP with your company's existing tools.</p>
+        <p className="text-sm text-slate-500 mt-1">Connect Harmony OP with your company&apos;s existing tools.</p>
       </header>
 
       <div className="grid gap-6">

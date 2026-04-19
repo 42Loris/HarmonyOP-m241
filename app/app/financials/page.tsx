@@ -1,7 +1,7 @@
 // app/app/financials/page.tsx
 import { db } from "@/db";
 import { eq, desc } from "drizzle-orm";
-import { users, onboardingWorkflows, workflowTasks } from "@/db/schema";
+import { users, onboardingWorkflows } from "@/db/schema";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { DollarSign, TrendingUp, Laptop, CreditCard, PieChart } from "lucide-react";
@@ -30,9 +30,16 @@ export default async function FinancialsPage() {
   let totalSpend = 0;
   let hardwareSpend = 0;
   let softwareSpend = 0;
-  let activeWorkflowsCount = workflows.length;
+  const activeWorkflowsCount = workflows.length;
 
-  const expensesList: any[] = [];
+  const expensesList: {
+    id: string;
+    title: string;
+    cost: number;
+    employee: string;
+    type: string;
+    date: Date;
+  }[] = [];
 
   workflows.forEach(workflow => {
     workflow.tasks.forEach(task => {

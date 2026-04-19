@@ -2,7 +2,7 @@
 import { Suspense } from "react";
 import { db } from "@/db";
 import { eq } from "drizzle-orm";
-import { users, onboardingWorkflows, organizationIntegrations } from "@/db/schema";
+import { users, onboardingWorkflows, organizationIntegrations, type User } from "@/db/schema";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +14,7 @@ import EmployeeDashboard from "@/components/dashboard/EmployeeDashboard";
 // ==========================================
 // 1. ASYNC EMPLOYEE DASHBOARD ENGINE
 // ==========================================
-async function AsyncEmployeeView({ dbUser }: { dbUser: any }) {
+async function AsyncEmployeeView({ dbUser }: { dbUser: User }) {
   const myWorkflow = await db.query.onboardingWorkflows.findFirst({
     where: eq(onboardingWorkflows.newHireId, dbUser.id),
     with: { tasks: true }
@@ -32,7 +32,7 @@ async function AsyncEmployeeView({ dbUser }: { dbUser: any }) {
 // ==========================================
 // 2. ASYNC ADMIN DASHBOARD ENGINE
 // ==========================================
-async function AsyncAdminView({ dbUser }: { dbUser: any }) {
+async function AsyncAdminView({ dbUser }: { dbUser: User }) {
   const integration = await db.query.organizationIntegrations.findFirst({
     where: eq(organizationIntegrations.orgId, dbUser.orgId)
   });

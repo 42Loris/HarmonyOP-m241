@@ -29,6 +29,7 @@ describe('toggleActionItemAction', () => {
   });
 
   it('should throw an error if workflow is not found', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (db.query.onboardingWorkflows.findFirst as any).mockResolvedValue(null);
 
     const result = await toggleActionItemAction(mockWorkflowId, mockItemKey);
@@ -41,6 +42,7 @@ describe('toggleActionItemAction', () => {
       id: mockWorkflowId,
       completedActionItems: '[]',
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (db.query.onboardingWorkflows.findFirst as any).mockResolvedValue(mockWorkflow);
 
     const result = await toggleActionItemAction(mockWorkflowId, mockItemKey);
@@ -56,6 +58,7 @@ describe('toggleActionItemAction', () => {
       id: mockWorkflowId,
       completedActionItems: JSON.stringify([mockItemKey, 'other-item']),
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (db.query.onboardingWorkflows.findFirst as any).mockResolvedValue(mockWorkflow);
 
     const result = await toggleActionItemAction(mockWorkflowId, mockItemKey);
@@ -71,6 +74,7 @@ describe('toggleActionItemAction', () => {
       id: mockWorkflowId,
       completedActionItems: JSON.stringify(['other-item']),
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (db.query.onboardingWorkflows.findFirst as any).mockResolvedValue(mockWorkflow);
 
     const result = await toggleActionItemAction(mockWorkflowId, mockItemKey);

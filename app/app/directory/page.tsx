@@ -1,6 +1,6 @@
 // app/app/directory/page.tsx
 import { db } from "@/db";
-import { eq, not } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { users } from "@/db/schema";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";

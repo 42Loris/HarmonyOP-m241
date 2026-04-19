@@ -40,9 +40,9 @@ export default async function WorkflowsPage() {
             <p className="text-slate-500">No active workflows found. Trigger an onboarding to see it here.</p>
           </div>
         ) : (
-          workflows.map((wf: any) => {
+          workflows.map((wf) => {
             const totalTasks = wf.tasks?.length || 0;
-            const completedTasks = wf.tasks?.filter((t: any) => t.status === "DONE").length || 0;
+            const completedTasks = wf.tasks?.filter((t) => t.status === "DONE").length || 0;
             // Use the database ratio, or fallback to manual calculation
             const progress = wf.progressRatio || (totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100));
 

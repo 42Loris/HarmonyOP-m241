@@ -41,9 +41,9 @@ export async function scrapeHardwareAction(url: string): Promise<{ title: string
         const data = JSON.parse($(el).html() || "{}");
         
         // Product data can be the root object or inside a @graph array
-        const findProduct = (obj: unknown): any => {
+        const findProduct = (obj: unknown): Record<string, unknown> | null => {
           if (!obj || typeof obj !== "object") return null;
-          const candidate = obj as Record<string, any>;
+          const candidate = obj as Record<string, unknown>;
           if (candidate["@type"] === "Product") return candidate;
           if (Array.isArray(obj)) {
             for (const item of obj) {
@@ -61,18 +61,20 @@ export async function scrapeHardwareAction(url: string): Promise<{ title: string
 
         const product = findProduct(data);
         if (product) {
-          if (!title) title = product.name;
+          if (!title) title = product.name as string | undefined;
           if (!price) {
-            if (product.offers) {
-              if (Array.isArray(product.offers)) {
-                price = product.offers[0]?.price?.toString();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const offers = product.offers as any;
+            if (offers) {
+              if (Array.isArray(offers)) {
+                price = offers[0]?.price?.toString();
               } else {
-                price = product.offers.price?.toString();
+                price = offers.price?.toString();
               }
             }
           }
         }
-      } catch (e) {
+      } catch {
         // Silent catch for JSON parse errors
       }
     });

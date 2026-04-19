@@ -84,8 +84,8 @@ export async function autoMapEntraGroupAction(profileId: string) {
     revalidatePath("/app/profiles");
     return { success: true };
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Auto-map failed:", error);
-    return { error: error.message || "Failed to auto-map group" };
+    return { error: error instanceof Error ? error.message : "Failed to auto-map group" };
   }
 }

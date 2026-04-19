@@ -15,7 +15,7 @@ const TriggerSchema = z.object({
   startDate: z.string().min(1, "Start date is required"),
 });
 
-export async function triggerOnboardingAction(prevState: any, formData: FormData) {
+export async function triggerOnboardingAction(prevState: unknown, formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Unauthorized" };

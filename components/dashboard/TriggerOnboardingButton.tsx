@@ -38,7 +38,8 @@ export default function TriggerOnboardingButton({ profiles }: { profiles: Profil
 
   useEffect(() => {
     if (state?.success) {
-      setOpen(false); // Close modal on success
+      const timer = setTimeout(() => setOpen(false), 0);
+      return () => clearTimeout(timer);
     }
   }, [state]);
 

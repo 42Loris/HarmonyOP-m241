@@ -3,6 +3,26 @@
 import { useState } from "react";
 import { ShieldAlert, ShieldCheck } from "lucide-react";
 import SubmitButton from "@/components/ui/SubmitButton";
+interface Profile {
+  id: string;
+  name: string;
+  department: string;
+  defaultLicenses: string | null;
+  defaultGroups: string | null;
+}
+
+interface MSLicense {
+  skuId: string;
+  skuPartNumber: string;
+  prepaidUnits?: { enabled: number };
+  consumedUnits: number;
+}
+
+interface MSGroup {
+  id: string;
+  displayName: string;
+}
+
 export default function NewHireForm({ 
   profiles, 
   msLicenses, 
@@ -10,11 +30,12 @@ export default function NewHireForm({
   tenantDomain, 
   action 
 }: { 
-  profiles: any[], 
-  msLicenses: any[], 
-  msGroups: any[], 
+  profiles: Profile[], 
+  msLicenses: MSLicense[], 
+  msGroups: MSGroup[], 
   tenantDomain: string,
-  action: any 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  action: any
 }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -40,11 +61,11 @@ export default function NewHireForm({
 
   // 2. Filter the Microsoft arrays to exclude items already in the profile
   const availableMsLicenses = msLicenses.filter(
-    (lic: any) => !defaultLicensesArray.includes(lic.skuPartNumber)
+    (lic: MSLicense) => !defaultLicensesArray.includes(lic.skuPartNumber)
   );
   
   const availableMsGroups = msGroups.filter(
-    (group: any) => !defaultGroupsArray.includes(group.displayName)
+    (group: MSGroup) => !defaultGroupsArray.includes(group.displayName)
   );
 
   return (
@@ -131,11 +152,11 @@ export default function NewHireForm({
               <label className="block text-sm font-medium text-slate-700 mb-1">Additional MS Licenses</label>
               <div className="w-full border border-slate-300 rounded-md bg-white max-h-48 overflow-y-auto p-2 space-y-1">
                 {availableMsLicenses.length > 0 ? (
-                  availableMsLicenses.map((lic: any) => (
+                  availableMsLicenses.map((lic: MSLicense) => (
                     <label key={lic.skuId} className="flex items-start gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
                       <input type="checkbox" name="msLicenses" value={lic.skuPartNumber} className="mt-1 h-4 w-4 text-blue-600 rounded border-slate-300" />
                       <span className="text-sm text-slate-700 leading-tight">
-                        {lic.skuPartNumber} <br/><span className="text-xs text-slate-400">Available: {lic.prepaidUnits?.enabled - lic.consumedUnits}</span>
+                        {lic.skuPartNumber} <br/><span className="text-xs text-slate-400">Available: {(lic.prepaidUnits?.enabled || 0) - lic.consumedUnits}</span>
                       </span>
                     </label>
                   ))
@@ -148,7 +169,7 @@ export default function NewHireForm({
               <label className="block text-sm font-medium text-slate-700 mb-1">Additional MS Groups</label>
               <div className="w-full border border-slate-300 rounded-md bg-white max-h-48 overflow-y-auto p-2 space-y-1">
                 {availableMsGroups.length > 0 ? (
-                  availableMsGroups.map((group: any) => (
+                  availableMsGroups.map((group: MSGroup) => (
                     <label key={group.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
                       <input type="checkbox" name="msGroups" value={group.displayName} className="h-4 w-4 text-blue-600 rounded border-slate-300" />
                       <span className="text-sm text-slate-700">{group.displayName}</span>

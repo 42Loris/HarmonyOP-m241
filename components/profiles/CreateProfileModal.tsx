@@ -33,7 +33,8 @@ export default function CreateProfileModal() {
   // Close the modal automatically if the action returns success
   useEffect(() => {
     if (state.success && state.timestamp) {
-      setIsOpen(false);
+      const timer = setTimeout(() => setIsOpen(false), 0);
+      return () => clearTimeout(timer);
     }
   }, [state.success, state.timestamp]);
 

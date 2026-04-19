@@ -80,7 +80,7 @@ export default async function ProfileDetailsPage({ params }: { params: Promise<{
         const skusData = await skusRes.json();
         msLicenses = skusData.value || [];
       }
-    } catch (e) {
+    } catch {
       console.error("Failed to fetch MS Graph data");
     }
   }

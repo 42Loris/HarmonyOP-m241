@@ -57,7 +57,7 @@ export async function updateMicrosoftIntegrationAction(formData: FormData) {
     revalidatePath("/app", "layout");
     
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Integration update failed:", error);
     return { error: "Failed to save Microsoft credentials." };
   }

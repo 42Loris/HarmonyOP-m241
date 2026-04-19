@@ -32,10 +32,9 @@ export default function MicrosoftIntegrationForm({ isConnected }: { isConnected:
 
   useEffect(() => {
     if (state.success && state.timestamp) {
-      setShowSuccess(true);
-      // Hide the success message after 3 seconds
-      const timer = setTimeout(() => setShowSuccess(false), 3000);
-      return () => clearTimeout(timer);
+      const t1 = setTimeout(() => setShowSuccess(true), 0);
+      const t2 = setTimeout(() => setShowSuccess(false), 3000);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
     }
   }, [state.success, state.timestamp]);
 

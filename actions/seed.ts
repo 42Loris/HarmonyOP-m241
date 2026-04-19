@@ -7,7 +7,7 @@ import { createClient } from "@/utils/supabase/server";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-export async function seedDashboardData(formData?: FormData) {
+export async function seedDashboardData() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 

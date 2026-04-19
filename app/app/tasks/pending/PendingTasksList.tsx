@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, AlertCircle, Clock, Monitor, FileText, ArrowDownAz, ExternalLink, CheckCircle2 } from "lucide-react";
+import { Calendar, AlertCircle, Monitor, FileText, ArrowDownAz, ExternalLink, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
 type PendingTask = {
@@ -83,7 +83,7 @@ export default function PendingTasksList({ initialTasks }: { initialTasks: Pendi
           <span className="text-sm font-medium text-slate-500 flex items-center gap-1"><ArrowDownAz className="h-4 w-4" /> Sort by:</span>
           <select 
             value={sortBy} 
-            onChange={(e) => setSortBy(e.target.value as any)}
+            onChange={(e) => setSortBy(e.target.value as "URGENCY" | "DEPARTMENT" | "STATUS")}
             className="border border-slate-300 text-sm rounded-lg px-3 py-1.5 bg-slate-50 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           >
             <option value="URGENCY">Urgency (Start Date)</option>

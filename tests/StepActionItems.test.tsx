@@ -16,6 +16,7 @@ describe('StepActionItems', () => {
   const mockOnBack = vi.fn();
 
   it('should render the list of action items', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     render(<StepActionItems workflow={mockWorkflow as any} onNext={mockOnNext} onBack={mockOnBack} />);
     
     expect(screen.getByText(/Log into Microsoft 365/i)).toBeInTheDocument();
@@ -24,6 +25,7 @@ describe('StepActionItems', () => {
   });
 
   it('should call onNext when clicking the next arrow', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     render(<StepActionItems workflow={mockWorkflow as any} onNext={mockOnNext} onBack={mockOnBack} />);
     
     const nextButton = screen.getAllByRole('button')[1]; // The second button is next arrow
@@ -33,6 +35,7 @@ describe('StepActionItems', () => {
   });
 
   it('should call onBack when clicking the back arrow', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     render(<StepActionItems workflow={mockWorkflow as any} onNext={mockOnNext} onBack={mockOnBack} />);
     
     const backButton = screen.getAllByRole('button')[0]; // The first button is back arrow

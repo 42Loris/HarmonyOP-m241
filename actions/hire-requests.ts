@@ -139,7 +139,7 @@ export async function approveHireRequestAction(formData: FormData) {
     
     const domainsRes = await fetch(`https://graph.microsoft.com/v1.0/domains`, { headers });
     const domainsData = await domainsRes.json();
-    const defaultDomain = domainsData.value?.find((d: any) => d.isDefault)?.id || "company.com";
+    const defaultDomain = domainsData.value?.find((d: { isDefault: boolean, id: string }) => d.isDefault)?.id || "company.com";
 
     const skusRes = await fetch(`https://graph.microsoft.com/v1.0/subscribedSkus`, { headers });
     const skusData = await skusRes.json();
@@ -199,7 +199,7 @@ export async function approveHireRequestAction(formData: FormData) {
       const addLicenses = [];
       
       for (const reqSku of requestedSkus) {
-        const liveSku = skusData.value?.find((s: any) => s.skuPartNumber === reqSku);
+        const liveSku = skusData.value?.find((s: { skuPartNumber: string, skuId: string }) => s.skuPartNumber === reqSku);
         if (liveSku) addLicenses.push({ skuId: liveSku.skuId });
       }
 
@@ -218,7 +218,7 @@ export async function approveHireRequestAction(formData: FormData) {
     if (request.requestedGroups) {
       const requestedGroupNames = request.requestedGroups.split(", ");
       for (const groupName of requestedGroupNames) {
-        const liveGroup = groupsData.value?.find((g: any) => g.displayName === groupName);
+        const liveGroup = groupsData.value?.find((g: { displayName: string, id: string }) => g.displayName === groupName);
         if (liveGroup) {
           await fetch(`https://graph.microsoft.com/v1.0/groups/${liveGroup.id}/members/$ref`, {
             method: "POST",
@@ -261,7 +261,7 @@ export async function approveHireRequestAction(formData: FormData) {
       const tasksToInsert = request.profile.defaultTasks.map(task => ({
         workflowId: newWorkflow.id,
         title: task.title,
-        taskType: task.taskType as any,
+        taskType: task.taskType as "IT_ACCESS" | "HARDWARE" | "TRAINING" | "HR_ADMIN",
         status: "PENDING" as const,
         requiresApproval: task.requiresApproval,
         approverEmail: task.approverEmail,
@@ -302,9 +302,9 @@ export async function approveHireRequestAction(formData: FormData) {
 
     revalidatePath("/app/requests");
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Failed to approve request:", error);
-    return { error: error.message || "Failed to provision user" };
+    return { error: error instanceof Error ? error.message : "Failed to provision user" };
   }
 }
 

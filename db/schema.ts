@@ -1,6 +1,6 @@
 // db/schema.ts
 import { pgTable, uuid, text, timestamp, integer, pgEnum, boolean } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, type InferSelectModel } from "drizzle-orm";
 
 // Enums based on Harmony OP requirements
 export const roleEnum = pgEnum("role", ["HR", "IT", "MANAGER", "EMPLOYEE"]);
@@ -48,6 +48,9 @@ export const onboardingWorkflows = pgTable("onboarding_workflows", {
   completedActionItems: text("completed_action_items").default("[]").notNull(), 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export type User = InferSelectModel<typeof users>;
+export type OnboardingWorkflow = InferSelectModel<typeof onboardingWorkflows>;
 
 // Workflow Tasks (Instantiated tasks for IT, HR, etc.) 
 export const workflowTasks = pgTable("workflow_tasks", {

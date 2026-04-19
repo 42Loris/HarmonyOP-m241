@@ -42,7 +42,8 @@ export default function CreateProfileButton() {
   // 3. Update the useEffect to cleanly read the state
   useEffect(() => {
     if (state.success && state.timestamp) {
-      setOpen(false);
+      const timer = setTimeout(() => setOpen(false), 0);
+      return () => clearTimeout(timer);
     }
   }, [state.success, state.timestamp]);
 

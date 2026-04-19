@@ -21,7 +21,7 @@ export default function SyncButton() {
       } else {
         alert(data.error || "Failed to sync");
       }
-    } catch (error) {
+    } catch {
       alert("Something went wrong during sync.");
     } finally {
       setIsSyncing(false);

@@ -42,7 +42,7 @@ export default async function ProfilesPage() {
 
       {profiles.length === 0 ? (
         <div className="text-center p-12 bg-white rounded-xl border border-slate-200">
-          <p className="text-slate-500">No profiles created yet. Click "New Profile" to get started.</p>
+          <p className="text-slate-500">No profiles created yet. Click &quot;New Profile&quot; to get started.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

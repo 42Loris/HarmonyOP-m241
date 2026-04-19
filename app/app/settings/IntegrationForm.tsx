@@ -5,7 +5,7 @@ import { useState } from "react";
 import { updateMicrosoftIntegrationAction } from "@/actions/settings";
 import { Loader2, Building, Key, Lock, ShieldCheck, AlertCircle } from "lucide-react";
 
-export default function IntegrationForm({ initialData }: { initialData: any }) {
+export default function IntegrationForm({ initialData }: { initialData: { tenantId: string | null, clientId: string | null, clientSecret: string | null } | null }) {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 

@@ -37,7 +37,7 @@ export default async function SettingsPage() {
       </header>
 
       {/* 1. The Microsoft Credentials Form */}
-      <IntegrationForm initialData={integrationData} />
+      <IntegrationForm initialData={integrationData || null} />
 
       {/* 2. Your Factory Reset Button */}
       <DangerZone />

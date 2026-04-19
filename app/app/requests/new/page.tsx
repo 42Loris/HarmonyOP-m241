@@ -10,7 +10,7 @@ import { ArrowLeft, UserPlus, Loader2 } from "lucide-react";
 import NewHireForm from "./NewHireForm";
 
 // === 1. THE ASYNC ENGINE (Runs in the background) ===
-async function AsyncMicrosoftForm({ profiles, orgId }: { profiles: any[], orgId: string }) {
+async function AsyncMicrosoftForm({ profiles, orgId }: { profiles: { id: string, name: string, department: string, defaultLicenses: string | null, defaultGroups: string | null }[], orgId: string }) {
   const integration = await db.query.organizationIntegrations.findFirst({
     where: eq(organizationIntegrations.orgId, orgId),
   });
@@ -51,12 +51,12 @@ async function AsyncMicrosoftForm({ profiles, orgId }: { profiles: any[], orgId:
         });
         const domainsData = await domainsRes.json();
         
-        const defaultDomain = domainsData.value?.find((d: any) => d.isDefault);
+        const defaultDomain = domainsData.value?.find((d: { isDefault: boolean, id: string }) => d.isDefault);
         if (defaultDomain) {
           tenantDomain = defaultDomain.id;
         }
       }
-    } catch (e) {
+    } catch {
       console.error("Failed to fetch Graph data for form");
     }
   }
@@ -67,7 +67,7 @@ async function AsyncMicrosoftForm({ profiles, orgId }: { profiles: any[], orgId:
       msLicenses={msLicenses} 
       msGroups={msGroups} 
       tenantDomain={tenantDomain}
-      action={createHireRequestAction as any} 
+      action={createHireRequestAction} 
     />
   );
 }

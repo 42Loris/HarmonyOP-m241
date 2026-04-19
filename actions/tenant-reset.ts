@@ -58,8 +58,8 @@ export async function resetTenantDataAction() {
     revalidatePath("/app/requests");
     
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Failed to reset tenant data:", error);
-    return { error: error.message || "Failed to reset data" };
+    return { error: error instanceof Error ? error.message : "Failed to reset data" };
   }
 }

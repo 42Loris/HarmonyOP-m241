@@ -113,8 +113,8 @@ export async function resetMicrosoftPasswordAction(employeeId: string) {
     // We still return the password to the UI just in case the Admin wants to copy it directly
     return { success: true, newPassword: tempPassword };
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Password reset failed:", error);
-    return { error: error.message || "Failed to reset password." };
+    return { error: error instanceof Error ? error.message : "Failed to reset password." };
   }
 }

@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     }
 
     let totalNewHiresProcessed = 0;
-    let debugMessages = []; // 🕵️‍♂️ OUR DETECTIVE LOGS
+    const debugMessages = []; // 🕵️‍♂️ OUR DETECTIVE LOGS
 
     for (const integration of integrationsToSync) {
       if (!integration.tenantId || !integration.clientId || !integration.clientSecret) continue;
@@ -76,11 +76,12 @@ export async function POST(req: Request) {
         },
       });
 
-      const mappedProfiles = profiles.filter(p => p.entraGroupId !== null || (p as any).entra_group_id !== null);
+      const mappedProfiles = profiles.filter(p => p.entraGroupId !== null || (p as { entra_group_id?: string }).entra_group_id !== null);
       debugMessages.push(`Found ${mappedProfiles.length} mapped profiles`);
 
       for (const profile of mappedProfiles) {
-        const groupId = profile.entraGroupId || (profile as any).entra_group_id;
+        const groupId = profile.entraGroupId || (profile as { entra_group_id?: string }).entra_group_id;
+        if (!groupId) continue;
 
         const groupRes = await fetch(`https://graph.microsoft.com/v1.0/groups/${groupId.trim()}/members`, {
           headers: { Authorization: `Bearer ${accessToken}` },
