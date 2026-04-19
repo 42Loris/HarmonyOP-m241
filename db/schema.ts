@@ -45,6 +45,7 @@ export const onboardingWorkflows = pgTable("onboarding_workflows", {
   department: text("department").notNull().default("General"), 
   startDate: timestamp("start_date").notNull(),
   progressRatio: integer("progress_ratio").default(0).notNull(), 
+  completedActionItems: text("completed_action_items").default("[]").notNull(), 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

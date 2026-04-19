@@ -8,6 +8,13 @@
       "when": 1772290250604,
       "tag": "0000_tired_major_mapleleaf",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1776621328671,
+      "tag": "0001_condemned_giant_girl",
+      "breakpoints": true
     }
   ]
 }

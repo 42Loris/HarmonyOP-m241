@@ -15,6 +15,7 @@ Harmony OP is an enterprise-grade, automated Employee Onboarding and Provisionin
   - **Provisioning Engine:** Server Actions in `actions/hire-requests.ts` that handle the multi-phase Entra ID setup.
   - **Relational Schema:** Highly normalized schema in `db/schema.ts` supporting multi-tenancy and complex workflow tracking.
   - **Mission Control:** Kanban-style task boards with "Urgency Math" for deadline tracking.
+  - **Onboarding Wizard:** A visually rich, multi-step employee experience using Framer Motion and persistent task tracking to guide new hires through their first day.
 
 ## Tech Stack
 
