@@ -18,15 +18,28 @@ export async function GET(request: Request) {
       const authUser = authData.user;
 
       try {
-        // 1. Prüfen, ob der Nutzer bereits in unserer Postgres-Datenbank existiert
-        const existingUser = await db.query.users.findFirst({
+        // 1. Prüfen, ob der Nutzer bereits in unserer Postgres-Datenbank existiert via authId
+        let existingUser = await db.query.users.findFirst({
           where: eq(users.authId, authUser.id),
         });
 
-        // 2. Wenn er nicht existiert (erster Login via Microsoft!), legen wir ihn an
+        // 2. Falls nicht via authId gefunden, prüfen wir via Email (Pre-Provisioned User!)
+        if (!existingUser && authUser.email) {
+          existingUser = await db.query.users.findFirst({
+            where: eq(users.email, authUser.email),
+          });
+
+          if (existingUser) {
+            // User existiert bereits via Provisioning Engine, aber authId fehlt -> Update!
+            await db.update(users)
+              .set({ authId: authUser.id })
+              .where(eq(users.id, existingUser.id));
+          }
+        }
+
+        // 3. Wenn er gar nicht existiert (erster Login via Microsoft ohne Pre-Provisioning!), legen wir ihn an
         if (!existingUser) {
           // Wir suchen die erste Organisation im System als Fallback (für die Dev-Phase)
-          // Später mappen wir das anhand der E-Mail-Domain auf den richtigen Tenant!
           const defaultOrg = await db.query.organizations.findFirst();
 
           if (defaultOrg) {
@@ -34,7 +47,7 @@ export async function GET(request: Request) {
               authId: authUser.id,
               email: authUser.email || '',
               name: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'SSO User',
-              role: 'EMPLOYEE', // Standardmäßig ist jeder neue SSO-Nutzer erst mal ein normaler Angestellter
+              role: 'EMPLOYEE',
               department: 'General', 
               orgId: defaultOrg.id, 
             });
