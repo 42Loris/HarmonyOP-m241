@@ -16,9 +16,10 @@ import {
   ShieldCheck,
   Contact,
   History,
-  PieChart // <-- NEW ICON FOR FINANCIALS
+  PieChart
 } from "lucide-react";
 import { signOutAction } from "@/actions/auth";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 type SidebarProps = {
   userRole: string;
@@ -37,7 +38,7 @@ export default function Sidebar({ userRole, userName, orgName }: SidebarProps) {
     { name: "IT Tasks", href: "/app/tasks", icon: CheckSquare },
     { name: "HR Tasks", href: "/app/hr-tasks", icon: ClipboardCheck },
     { name: "Profiles", href: "/app/profiles", icon: Users },
-    { name: "Financials", href: "/app/financials", icon: PieChart }, // <-- NEW DIRECT LINK
+    { name: "Financials", href: "/app/financials", icon: PieChart },
     { name: "Settings", href: "/app/settings", icon: Settings },
     { name: "Audit Logs", href: "/app/audit-logs", icon: History }, 
   ];
@@ -49,13 +50,16 @@ export default function Sidebar({ userRole, userName, orgName }: SidebarProps) {
   const navigation = userRole === "EMPLOYEE" ? employeeNav : adminNav;
 
   return (
-    <div className="flex h-full w-64 flex-col bg-slate-900 text-white shadow-xl">
-      <div className="flex h-16 items-center gap-2 px-6 font-bold text-xl tracking-tight border-b border-slate-800">
-        <Hexagon className="h-6 w-6 text-blue-500 fill-blue-500/20" />
-        <span>Harmony OP</span>
+    <div className="flex h-full w-64 flex-col bg-slate-900 text-white shadow-xl dark:bg-slate-950 dark:border-r dark:border-slate-800">
+      <div className="flex h-16 items-center justify-between px-6 border-b border-slate-800">
+        <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
+          <Hexagon className="h-6 w-6 text-blue-500 fill-blue-500/20" />
+          <span>Harmony OP</span>
+        </div>
+        <ThemeToggle />
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
         {navigation.map((item) => {
           const isActive = pathname.startsWith(item.href);
           const Icon = item.icon;

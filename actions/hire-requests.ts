@@ -15,6 +15,7 @@ import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { Resend } from "resend";
+import { MicrosoftGraphService } from "@/lib/infrastructure/microsoft-graph";
 
 export async function createHireRequestAction(formData: FormData) {
   const resend = new Resend(process.env.RESEND_API_KEY);
@@ -122,30 +123,10 @@ export async function approveHireRequestAction(formData: FormData) {
       return { error: "Microsoft Integration missing. IT must connect tenant first." };
     }
 
-    const tokenRes = await fetch(`https://login.microsoftonline.com/${integration.tenantId}/oauth2/v2.0/token`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        client_id: integration.clientId,
-        scope: "https://graph.microsoft.com/.default",
-        client_secret: integration.clientSecret,
-        grant_type: "client_credentials",
-      }),
-    });
-    const { access_token } = await tokenRes.json();
-    if (!access_token) throw new Error("Failed to authenticate with Microsoft Graph");
-
-    const headers = { Authorization: `Bearer ${access_token}`, "Content-Type": "application/json" };
-    
-    const domainsRes = await fetch(`https://graph.microsoft.com/v1.0/domains`, { headers });
-    const domainsData = await domainsRes.json();
-    const defaultDomain = domainsData.value?.find((d: { isDefault: boolean, id: string }) => d.isDefault)?.id || "company.com";
-
-    const skusRes = await fetch(`https://graph.microsoft.com/v1.0/subscribedSkus`, { headers });
-    const skusData = await skusRes.json();
-    
-    const groupsRes = await fetch(`https://graph.microsoft.com/v1.0/groups?$select=id,displayName`, { headers });
-    const groupsData = await groupsRes.json();
+    const msGraph = new MicrosoftGraphService(integration);
+    const defaultDomain = await msGraph.getDefaultDomain();
+    const skusData = await msGraph.getSubscribedSkus();
+    const groupsData = await msGraph.getGroups();
 
     const mailNickname = `${request.firstName.toLowerCase().replace(/\s+/g, '')}.${request.lastName.toLowerCase().replace(/\s+/g, '')}`;
     const userPrincipalName = `${mailNickname}@${defaultDomain}`;
@@ -154,27 +135,12 @@ export async function approveHireRequestAction(formData: FormData) {
     // ==========================================
     // PHASE 1: CREATE THE USER IN MICROSOFT
     // ==========================================
-    const createUserRes = await fetch(`https://graph.microsoft.com/v1.0/users`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        accountEnabled: true,
-        displayName: `${request.firstName} ${request.lastName}`,
-        mailNickname: mailNickname,
-        userPrincipalName: userPrincipalName,
-        usageLocation: "CH", 
-        passwordProfile: {
-          forceChangePasswordNextSignIn: true,
-          password: tempPassword
-        }
-      })
+    const msUser = await msGraph.createUser({
+      displayName: `${request.firstName} ${request.lastName}`,
+      mailNickname,
+      userPrincipalName,
+      tempPassword,
     });
-    
-    const msUser = await createUserRes.json();
-    if (msUser.error) {
-      console.error("MS Graph Error:", msUser.error);
-      throw new Error(`Microsoft rejected user creation: ${msUser.error.message}`);
-    }
 
     const msUserId = msUser.id;
 
@@ -183,13 +149,7 @@ export async function approveHireRequestAction(formData: FormData) {
     // ==========================================
     // We immediately hit MS Graph again to forcefully inject the primary email.
     // This bypasses the Exchange server delay and guarantees Supabase gets the email.
-    await fetch(`https://graph.microsoft.com/v1.0/users/${msUserId}`, {
-      method: "PATCH",
-      headers,
-      body: JSON.stringify({ 
-        mail: userPrincipalName 
-      })
-    });
+    await msGraph.patchUser(msUserId, { mail: userPrincipalName });
 
     // ==========================================
     // PHASE 2: ASSIGN LICENSES
@@ -199,17 +159,11 @@ export async function approveHireRequestAction(formData: FormData) {
       const addLicenses = [];
       
       for (const reqSku of requestedSkus) {
-        const liveSku = skusData.value?.find((s: { skuPartNumber: string, skuId: string }) => s.skuPartNumber === reqSku);
-        if (liveSku) addLicenses.push({ skuId: liveSku.skuId });
+        const liveSku = skusData.find((s: { skuPartNumber: string, skuId: string }) => s.skuPartNumber === reqSku);
+        if (liveSku) addLicenses.push(liveSku.skuId);
       }
 
-      if (addLicenses.length > 0) {
-        await fetch(`https://graph.microsoft.com/v1.0/users/${msUserId}/assignLicense`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify({ addLicenses, removeLicenses: [] })
-        });
-      }
+      await msGraph.assignLicenses(msUserId, addLicenses);
     }
 
     // ==========================================
@@ -218,13 +172,9 @@ export async function approveHireRequestAction(formData: FormData) {
     if (request.requestedGroups) {
       const requestedGroupNames = request.requestedGroups.split(", ");
       for (const groupName of requestedGroupNames) {
-        const liveGroup = groupsData.value?.find((g: { displayName: string, id: string }) => g.displayName === groupName);
+        const liveGroup = groupsData.find((g: { displayName: string, id: string }) => g.displayName === groupName);
         if (liveGroup) {
-          await fetch(`https://graph.microsoft.com/v1.0/groups/${liveGroup.id}/members/$ref`, {
-            method: "POST",
-            headers,
-            body: JSON.stringify({ "@odata.id": `https://graph.microsoft.com/v1.0/directoryObjects/${msUserId}` })
-          });
+          await msGraph.addUserToGroup(liveGroup.id, msUserId);
         }
       }
     }

@@ -5,7 +5,8 @@ import { users, onboardingWorkflows } from "@/db/schema";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, User, Briefcase } from "lucide-react";
+import { Calendar, User, Briefcase, Activity } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export default async function WorkflowsPage() {
   const supabase = await createClient();
@@ -28,17 +29,19 @@ export default async function WorkflowsPage() {
   });
 
   return (
-    <div className="p-8 max-w-7xl mx-auto min-h-screen">
+    <div className="p-8 max-w-7xl mx-auto min-h-screen animate-in fade-in duration-500">
       <header className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Active Workflows</h1>
-        <p className="text-sm text-slate-500">Track the end-to-end onboarding progress for all new hires.</p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Active Workflows</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Track the end-to-end onboarding progress for all new hires.</p>
       </header>
 
       <div className="grid gap-4">
         {workflows.length === 0 ? (
-          <div className="text-center p-12 bg-white rounded-xl border border-slate-200">
-            <p className="text-slate-500">No active workflows found. Trigger an onboarding to see it here.</p>
-          </div>
+          <EmptyState 
+            icon={Activity}
+            title="No active workflows"
+            description="Trigger an onboarding from the dashboard or approve a hire request to see progress tracking here."
+          />
         ) : (
           workflows.map((wf) => {
             const totalTasks = wf.tasks?.length || 0;
@@ -47,17 +50,17 @@ export default async function WorkflowsPage() {
             const progress = wf.progressRatio || (totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100));
 
             return (
-              <Card key={wf.id} className="overflow-hidden">
+              <Card key={wf.id} className="overflow-hidden border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     
                     {/* Employee Info */}
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                        <User className="h-4 w-4 text-slate-400" /> 
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                        <User className="h-4 w-4 text-slate-400 dark:text-slate-500" /> 
                         {wf.newHire?.name || "Unknown"}
                       </h3>
-                      <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-500">
+                      <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-500 dark:text-slate-400">
                         <span className="flex items-center gap-1">
                           <Briefcase className="h-4 w-4" /> {wf.roleTitle}
                         </span>
@@ -70,16 +73,16 @@ export default async function WorkflowsPage() {
                     {/* Progress Bar */}
                     <div className="w-full md:w-1/3">
                       <div className="flex justify-between items-end mb-2">
-                        <span className="text-sm font-medium text-slate-700">Completion</span>
-                        <span className="text-sm font-bold text-blue-600">{progress}%</span>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Completion</span>
+                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{progress}%</span>
                       </div>
-                      <div className="w-full bg-slate-100 rounded-full h-2.5">
+                      <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5">
                         <div 
-                          className="bg-blue-600 h-2.5 rounded-full transition-all duration-500" 
+                          className="bg-blue-600 dark:bg-blue-500 h-2.5 rounded-full transition-all duration-500" 
                           style={{ width: `${progress}%` }}
                         ></div>
                       </div>
-                      <p className="text-xs text-slate-400 mt-2 text-right">
+                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 text-right">
                         {completedTasks} of {totalTasks} tasks done
                       </p>
                     </div>

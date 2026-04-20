@@ -30,15 +30,15 @@ export default function StepITTimeline({
       className="space-y-8"
     >
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-          <Laptop className="h-8 w-8 text-blue-600" />
+        <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-3">
+          <Laptop className="h-8 w-8 text-blue-600 dark:text-blue-500" />
           Digital Workspace & Hardware
         </h2>
         <div className="flex gap-3">
-          <button onClick={onBack} className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors">
+          <button onClick={onBack} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors">
             <ArrowLeft className="h-6 w-6" />
           </button>
-          <button onClick={onNext} className="bg-slate-900 text-white p-2 rounded-full hover:bg-slate-800 transition-colors shadow-md">
+          <button onClick={onNext} className="bg-slate-900 dark:bg-blue-600 text-white p-2 rounded-full hover:bg-slate-800 dark:hover:bg-blue-700 transition-colors shadow-md">
             <ArrowRight className="h-6 w-6" />
           </button>
         </div>
@@ -46,17 +46,17 @@ export default function StepITTimeline({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* IT Provisioning Timeline */}
-        <section className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
+        <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-sm">
           <div className="flex justify-between items-center mb-8">
-            <h3 className="text-xl font-bold text-slate-900">Provisioning Status</h3>
-            <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-bold">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Provisioning Status</h3>
+            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-sm font-bold">
               {workflow?.progressRatio || 0}% Complete
             </span>
           </div>
 
           <div className="relative space-y-8">
-            {/* The Vertical Line */}
-            <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-slate-100"></div>
+            {/* Vertical Line */}
+            <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-slate-100 dark:bg-slate-800"></div>
 
             {itTasks.length > 0 ? itTasks.map((task, idx) => (
               <motion.div 
@@ -66,30 +66,30 @@ export default function StepITTimeline({
                 transition={{ delay: idx * 0.1 }}
                 className="relative flex items-start gap-6 pl-10"
               >
-                <div className={`absolute left-0 p-1 rounded-full z-10 ${task.status === "DONE" ? "bg-green-100 text-green-600" : "bg-white border-2 border-slate-200 text-slate-300"}`}>
+                <div className={`absolute left-0 p-1 rounded-full z-10 ${task.status === "DONE" ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400" : "bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 text-slate-300 dark:text-slate-700"}`}>
                   {task.status === "DONE" ? <CheckCircle2 className="h-6 w-6" /> : <Circle className="h-6 w-6" />}
                 </div>
                 <div>
-                  <h4 className={`font-bold ${task.status === "DONE" ? "text-slate-900" : "text-slate-500"}`}>
+                  <h4 className={`font-bold ${task.status === "DONE" ? "text-slate-900 dark:text-slate-100" : "text-slate-500 dark:text-slate-500"}`}>
                     {task.title}
                   </h4>
-                  <p className="text-sm text-slate-500 mt-1">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                     {task.status === "DONE" ? "System access successfully granted." : "Configuration in progress..."}
                   </p>
                 </div>
               </motion.div>
             )) : (
-              <p className="text-slate-500 italic">No IT access tasks found.</p>
+              <p className="text-slate-500 dark:text-slate-400 italic pl-4">No IT access tasks found.</p>
             )}
             
             {workflow?.progressRatio === 100 && (
               <div className="relative flex items-start gap-6 pl-10">
-                <div className="absolute left-0 p-1 rounded-full z-10 bg-blue-100 text-blue-600">
+                <div className="absolute left-0 p-1 rounded-full z-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
                   <ShieldCheck className="h-6 w-6" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-blue-700">All Systems Ready</h4>
-                  <p className="text-sm text-blue-500 mt-1">Your digital workspace is fully provisioned.</p>
+                  <h4 className="font-bold text-blue-700 dark:text-blue-400">All Systems Ready</h4>
+                  <p className="text-sm text-blue-500 dark:text-blue-400 mt-1">Your digital workspace is fully provisioned.</p>
                 </div>
               </div>
             )}
@@ -98,7 +98,7 @@ export default function StepITTimeline({
 
         {/* Hardware Tracking */}
         <section className="space-y-6">
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-3xl p-8 shadow-xl">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-900 dark:to-black text-white rounded-3xl p-8 shadow-xl">
             <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
               <Package className="h-6 w-6 text-blue-400" />
               Equipment Delivery
@@ -144,12 +144,12 @@ export default function StepITTimeline({
             )}
           </div>
 
-          <div className="bg-blue-50 border border-blue-100 rounded-3xl p-6">
-            <h4 className="font-bold text-blue-900 flex items-center gap-2 mb-2">
+          <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-3xl p-6">
+            <h4 className="font-bold text-blue-900 dark:text-blue-400 flex items-center gap-2 mb-2">
               <ShieldCheck className="h-5 w-5" />
               IT Security Tip
             </h4>
-            <p className="text-sm text-blue-700 leading-relaxed">
+            <p className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">
               Never share your temporary password. You&apos;ll be prompted to change it during your first login.
             </p>
           </div>

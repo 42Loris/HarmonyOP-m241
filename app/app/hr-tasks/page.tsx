@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { users, onboardingWorkflows } from "@/db/schema";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import TaskBoard from "../tasks/TaskBoard"; // <-- REUSING OUR BEAUTIFUL COMPONENT!
+import TaskBoard from "../tasks/TaskBoard";
 
 export default async function HRTasksPage() {
   const supabase = await createClient();
@@ -26,7 +26,7 @@ export default async function HRTasksPage() {
 
   const hrTasks = activeWorkflows.flatMap(workflow => 
     workflow.tasks
-      .filter(task => hrTaskTypes.includes(task.taskType)) // <--- HR FILTER
+      .filter(task => hrTaskTypes.includes(task.taskType))
       .map(task => ({
         id: task.id,
         title: task.title,
@@ -41,10 +41,10 @@ export default async function HRTasksPage() {
   );
 
   return (
-    <div className="p-8 max-w-7xl mx-auto min-h-screen">
+    <div className="p-8 max-w-7xl mx-auto min-h-screen animate-in fade-in duration-500">
       <header className="mb-2">
-        <h1 className="text-3xl font-bold text-slate-900">HR Administration Tasks</h1>
-        <p className="text-sm text-slate-500 mt-2">
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">HR Administration Tasks</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
           Manage payroll setup, contracts, and welcome packages.
         </p>
       </header>

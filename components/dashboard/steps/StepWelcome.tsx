@@ -37,7 +37,7 @@ export default function StepWelcome({
       exit={{ opacity: 0, y: -20 }}
       className="space-y-8"
     >
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-900 text-white p-12 shadow-2xl border border-white/10">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-900 dark:from-blue-700 dark:to-slate-900 text-white p-12 shadow-2xl border border-white/10 dark:border-white/5">
         <div className="relative z-10 max-w-2xl">
           <motion.div 
             initial={{ scale: 0.8, opacity: 0 }}
@@ -59,7 +59,7 @@ export default function StepWelcome({
 
           <button 
             onClick={onNext}
-            className="group flex items-center gap-2 bg-white text-indigo-900 font-bold py-4 px-8 rounded-2xl shadow-lg hover:bg-blue-50 transition-all active:scale-95"
+            className="group flex items-center gap-2 bg-white text-indigo-900 dark:text-slate-900 font-bold py-4 px-8 rounded-2xl shadow-lg hover:bg-blue-50 transition-all active:scale-95"
           >
             Start Onboarding
             <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -96,11 +96,11 @@ export default function StepWelcome({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 + (idx * 0.1) }}
-            className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm"
+            className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm"
           >
             <div className="text-3xl mb-3">{item.icon}</div>
-            <h3 className="font-bold text-slate-900">{item.title}</h3>
-            <p className="text-sm text-slate-500">{item.desc}</p>
+            <h3 className="font-bold text-slate-900 dark:text-slate-100">{item.title}</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{item.desc}</p>
           </motion.div>
         ))}
       </div>

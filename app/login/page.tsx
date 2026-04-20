@@ -40,9 +40,6 @@ export default function LoginPage() {
       provider: 'azure',
       options: {
         scopes: 'email openid profile',
-        queryParams: {
-          prompt: 'consent', // <--- NEU: Zwingt Azure, das Token und die Claims komplett neu zu laden!
-        },
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     });

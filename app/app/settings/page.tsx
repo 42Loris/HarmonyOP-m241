@@ -25,13 +25,13 @@ export default async function SettingsPage() {
   });
 
   return (
-    <div className="p-8 max-w-4xl mx-auto min-h-screen space-y-8">
-      <header className="border-b border-slate-200 pb-6">
-        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-          <Settings className="h-8 w-8 text-slate-700" />
+    <div className="p-8 max-w-4xl mx-auto min-h-screen space-y-8 animate-in fade-in duration-500">
+      <header className="border-b border-slate-200 dark:border-slate-800 pb-6">
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-3">
+          <Settings className="h-8 w-8 text-slate-700 dark:text-slate-500" />
           Organization Settings
         </h1>
-        <p className="text-sm text-slate-500 mt-2">
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
           Manage your external integrations and data lifecycle.
         </p>
       </header>

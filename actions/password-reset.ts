@@ -7,6 +7,7 @@ import { createClient } from "@/utils/supabase/server";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { Resend } from "resend"; // <--- NEW IMPORT
+import { MicrosoftGraphService } from "@/lib/infrastructure/microsoft-graph";
 
 export async function resetMicrosoftPasswordAction(employeeId: string) {
   const resend = new Resend(process.env.RESEND_API_KEY); // <--- INITIALIZE RESEND
@@ -32,44 +33,15 @@ export async function resetMicrosoftPasswordAction(employeeId: string) {
       return { error: "Microsoft Integration missing. Please connect tenant." };
     }
 
-    // 1. Authenticate with Microsoft Graph
-    const tokenRes = await fetch(`https://login.microsoftonline.com/${integration.tenantId}/oauth2/v2.0/token`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        client_id: integration.clientId,
-        scope: "https://graph.microsoft.com/.default",
-        client_secret: integration.clientSecret,
-        grant_type: "client_credentials",
-      }),
-    });
-    
-    const { access_token } = await tokenRes.json();
-    if (!access_token) throw new Error("Failed to authenticate with Microsoft Graph");
+    const msGraph = new MicrosoftGraphService(integration);
 
-    // 2. Generate a secure temporary password
+    // 1. Generate a secure temporary password
     const tempPassword = `Reset!${Math.random().toString(36).slice(-4).toUpperCase()}${Math.random().toString(36).slice(-3)}`;
 
-    const headers = { Authorization: `Bearer ${access_token}`, "Content-Type": "application/json" };
-    
-    // 3. Update the password in Azure AD
-    const updateRes = await fetch(`https://graph.microsoft.com/v1.0/users/${targetEmployee.email}`, {
-      method: "PATCH",
-      headers,
-      body: JSON.stringify({
-        passwordProfile: {
-          forceChangePasswordNextSignIn: true, 
-          password: tempPassword
-        }
-      })
-    });
+    // 2. Update the password in Azure AD
+    await msGraph.resetPassword(targetEmployee.email, tempPassword);
 
-    if (!updateRes.ok) {
-      const errorData = await updateRes.json();
-      throw new Error(errorData.error?.message || "Failed to reset password in Azure.");
-    }
-
-    // 4. Log the action in the Audit Logs
+    // 3. Log the action in the Audit Logs
     await db.insert(auditLogs).values({
       id: crypto.randomUUID(),
       orgId: dbAdmin.orgId,

@@ -5,6 +5,7 @@ import { workflowTasks, users, organizationIntegrations, auditLogs } from "@/db/
 import { createClient } from "@/utils/supabase/server";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { MicrosoftGraphService } from "@/lib/infrastructure/microsoft-graph";
 
 /**
  * approveTaskAction
@@ -60,41 +61,14 @@ export async function approveTaskAction(taskId: string) {
         throw new Error("Microsoft Integration missing. Could not provision group access.");
       }
 
-      // Authenticate with Microsoft Graph API
-      const tokenRes = await fetch(`https://login.microsoftonline.com/${integration.tenantId}/oauth2/v2.0/token`, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          client_id: integration.clientId,
-          scope: "https://graph.microsoft.com/.default",
-          client_secret: integration.clientSecret,
-          grant_type: "client_credentials",
-        }),
-      });
-      
-      const { access_token } = await tokenRes.json();
-      if (!access_token) throw new Error("Failed to authenticate with Microsoft Graph");
+      const msGraph = new MicrosoftGraphService(integration);
 
-      const headers = { Authorization: `Bearer ${access_token}`, "Content-Type": "application/json" };
-      
       // Resolve Microsoft User ID by Email (UPN)
-      const userRes = await fetch(`https://graph.microsoft.com/v1.0/users/${targetEmployee.email}`, { headers });
-      const msUser = await userRes.json();
+      const msUser = await msGraph.getUser(targetEmployee.email);
       if (!msUser.id) throw new Error(`Could not find Microsoft User for ${targetEmployee.email}`);
 
       // Add User to Group via Graph API
-      const addGroupRes = await fetch(`https://graph.microsoft.com/v1.0/groups/${task.provisionEntraGroupOnComplete}/members/$ref`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          "@odata.id": `https://graph.microsoft.com/v1.0/directoryObjects/${msUser.id}`
-        })
-      });
-
-      if (!addGroupRes.ok) {
-        const errorData = await addGroupRes.json();
-        throw new Error(errorData.error?.message || "Failed to add user to Entra Group");
-      }
+      await msGraph.addUserToGroup(task.provisionEntraGroupOnComplete, msUser.id);
 
       // 6. Log Action to Audit Logs
       await db.insert(auditLogs).values({

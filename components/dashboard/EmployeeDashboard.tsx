@@ -53,10 +53,10 @@ export default function EmployeeDashboard({
 
   if (!workflow) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
-        <Rocket className="h-12 w-12 text-slate-300" />
-        <h2 className="text-2xl font-bold text-slate-900">No active onboarding</h2>
-        <p className="text-slate-500 max-w-md">We couldn&apos;t find an active onboarding workflow for your account. Please contact your manager or HR.</p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4 animate-in fade-in duration-700">
+        <Rocket className="h-12 w-12 text-slate-300 dark:text-slate-700" />
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">No active onboarding</h2>
+        <p className="text-slate-500 dark:text-slate-400 max-w-md">We couldn&apos;t find an active onboarding workflow for your account. Please contact your manager or HR.</p>
       </div>
     );
   }
@@ -77,13 +77,13 @@ export default function EmployeeDashboard({
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-6xl mx-auto min-h-screen space-y-8">
+    <div className="p-4 md:p-8 max-w-6xl mx-auto min-h-screen space-y-8 animate-in fade-in duration-500">
       
       {/* Help Button */}
       <div className="flex justify-end">
         <button 
           onClick={startTour}
-          className="text-xs font-bold text-slate-400 hover:text-indigo-600 flex items-center gap-1 transition-colors"
+          className="text-xs font-bold text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 transition-colors"
         >
           <BookOpen className="h-4 w-4" />
           Need a tour?
@@ -93,7 +93,7 @@ export default function EmployeeDashboard({
       {/* Stepper Navigation Indicator */}
       <div id="onboarding-stepper" className="flex items-center justify-between max-w-2xl mx-auto mb-12 relative">
         {/* Connection Line */}
-        <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 -z-10 -translate-y-1/2"></div>
+        <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 dark:bg-slate-800 -z-10 -translate-y-1/2"></div>
         
         {steps.map((step, idx) => {
           const Icon = step.icon;
@@ -107,15 +107,15 @@ export default function EmployeeDashboard({
                 disabled={!isCompleted && !isActive}
                 className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-md ${
                   isActive 
-                    ? "bg-indigo-600 text-white scale-110 ring-4 ring-indigo-100" 
+                    ? "bg-indigo-600 text-white scale-110 ring-4 ring-indigo-100 dark:ring-indigo-900/30" 
                     : isCompleted 
                       ? "bg-green-500 text-white hover:bg-green-600" 
-                      : "bg-white text-slate-400 border border-slate-200 grayscale"
+                      : "bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-600 border border-slate-200 dark:border-slate-800 grayscale"
                 }`}
               >
                 {isCompleted ? <CheckCircle2 className="h-6 w-6" /> : <Icon className="h-6 w-6" />}
               </button>
-              <span className={`text-xs font-bold uppercase tracking-wider ${isActive ? "text-indigo-600" : isCompleted ? "text-green-600" : "text-slate-400"}`}>
+              <span className={`text-[10px] md:text-xs font-bold uppercase tracking-wider ${isActive ? "text-indigo-600 dark:text-indigo-400" : isCompleted ? "text-green-600 dark:text-green-500" : "text-slate-400 dark:text-slate-600"}`}>
                 {step.label}
               </span>
             </div>
@@ -128,6 +128,10 @@ export default function EmployeeDashboard({
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
             className="w-full"
           >
             {renderStep()}
