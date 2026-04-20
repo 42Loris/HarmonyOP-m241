@@ -50,6 +50,10 @@ next-env.d.ts
 # Gemini CLI & MCP Configuration (CRITICAL)
 .gemini/
 .gemini/settings.json
+.agents/
+skills-lock.json
+GEMINI.md
+SystemArchitecture.md
 
 # Next.js & Node
 node_modules/

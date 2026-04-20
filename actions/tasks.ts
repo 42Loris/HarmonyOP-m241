@@ -2,9 +2,9 @@
 "use server";
 
 import { db } from "@/db";
-import { workflowTasks, onboardingWorkflows } from "@/db/schema";
+import { workflowTasks, onboardingWorkflows, users } from "@/db/schema";
 import { createClient } from "@/utils/supabase/server";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 type Status = "PENDING" | "IN_PROGRESS" | "BLOCKED" | "DONE";
@@ -12,18 +12,33 @@ type Status = "PENDING" | "IN_PROGRESS" | "BLOCKED" | "DONE";
 export async function updateTaskStatus(taskId: string, newStatus: Status) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
+  if (!user) return { error: "Unauthorized" };
+
+  const dbUser = await db.query.users.findFirst({ where: eq(users.authId, user.id) });
+  if (!dbUser || dbUser.role === "EMPLOYEE") {
+    return { error: "Unauthorized access. Only Admins/HR can manage tasks." };
+  }
 
   try {
-    // 1. Update the specific task and return it so we know which workflow it belongs to
+    // 1. Fetch task and verify multi-tenancy before update
+    const task = await db.query.workflowTasks.findFirst({
+      where: eq(workflowTasks.id, taskId),
+      with: { workflow: true }
+    });
+
+    if (!task || task.workflow.orgId !== dbUser.orgId) {
+      return { error: "Task not found or access denied" };
+    }
+
+    // 2. Update the specific task
     const [updatedTask] = await db.update(workflowTasks)
       .set({ status: newStatus, updatedAt: new Date() })
       .where(eq(workflowTasks.id, taskId))
       .returning();
 
-    if (!updatedTask) return { error: "Task not found" };
+    if (!updatedTask) return { error: "Failed to update task" };
 
-    // 2. Fetch ALL tasks for this specific workflow to calculate true progress
+    // 3. Fetch ALL tasks for this specific workflow to calculate true progress
     const allTasks = await db.query.workflowTasks.findMany({
       where: eq(workflowTasks.workflowId, updatedTask.workflowId),
     });

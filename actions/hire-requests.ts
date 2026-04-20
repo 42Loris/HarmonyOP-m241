@@ -11,7 +11,7 @@ import {
   workflowTasks 
 } from "@/db/schema";
 import { createClient } from "@/utils/supabase/server";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { Resend } from "resend";
@@ -49,10 +49,13 @@ export async function createHireRequestAction(formData: FormData) {
   }
 
   const profile = await db.query.roleProfiles.findFirst({
-    where: eq(roleProfiles.id, profileId)
+    where: and(
+      eq(roleProfiles.id, profileId),
+      eq(roleProfiles.orgId, dbUser.orgId)
+    )
   });
 
-  if (!profile) return { error: "Profile not found" };
+  if (!profile) return { error: "Profile not found or access denied" };
 
   try {
     await db.insert(hireRequests).values({
@@ -98,25 +101,37 @@ export async function createHireRequestAction(formData: FormData) {
     console.error("Failed to process hire request:", error);
     return { error: "Failed to process request" };
   }
-  
-  redirect("/app/requests");
+
+  revalidatePath("/app/requests");
+  return { success: true };
 }
 
 export async function approveHireRequestAction(formData: FormData) {
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
+
+  const dbUser = await db.query.users.findFirst({ where: eq(users.authId, user.id) });
+  if (!dbUser || dbUser.role === "EMPLOYEE") {
+    return { error: "Only Admins/HR can approve requests." };
+  }
+
   const requestId = formData.get("requestId") as string;
-  if (!requestId) return { error: "Missing ID" };
+  if (!requestId) return { error: "Missing Request ID" };
 
   try {
     const request = await db.query.hireRequests.findFirst({
-      where: eq(hireRequests.id, requestId),
-      with: { profile: { with: { defaultTasks: true } } }
+      where: and(
+        eq(hireRequests.id, requestId),
+        eq(hireRequests.orgId, dbUser.orgId)
+      ),
+      with: { profile: true }
     });
-    
+
     if (!request) return { error: "Request not found" };
 
     const integration = await db.query.organizationIntegrations.findFirst({
-      where: eq(organizationIntegrations.orgId, request.orgId)
+      where: eq(organizationIntegrations.orgId, dbUser.orgId)
     });
 
     if (!integration?.clientId || !integration?.clientSecret) {
@@ -180,92 +195,74 @@ export async function approveHireRequestAction(formData: FormData) {
     }
 
     // ==========================================
-    // PHASE 4: START HARMONY INTERNAL WORKFLOW
+    // PHASE 4: START INTERNAL WORKFLOW
     // ==========================================
-    const [newInternalUser] = await db.insert(users).values({
-      orgId: request.orgId,
-      email: userPrincipalName,
-      name: `${request.firstName} ${request.lastName}`,
-      role: "EMPLOYEE",
-      department: request.department,
-    })
-    .onConflictDoUpdate({
-      target: users.email,
-      set: { 
-        name: `${request.firstName} ${request.lastName}`,
-        department: request.department 
-      }
-    })
-    .returning();
-
-    const [newWorkflow] = await db.insert(onboardingWorkflows).values({
-      orgId: request.orgId,
-      newHireId: newInternalUser.id,
-      profileId: request.profileId,
+    const workflowId = crypto.randomUUID();
+    await db.insert(onboardingWorkflows).values({
+      id: workflowId,
+      orgId: dbUser.orgId,
+      newHireId: null, // User doesn't exist in Supabase yet (handled by sync)
+      hireRequestId: request.id,
       roleTitle: request.jobTitle,
       department: request.department,
-      startDate: new Date(),
-    }).returning();
+      startDate: new Date(), // Should ideally come from the request
+      status: "ACTIVE"
+    });
 
-    if (request.profile?.defaultTasks && request.profile.defaultTasks.length > 0) {
-      const tasksToInsert = request.profile.defaultTasks.map(task => ({
-        workflowId: newWorkflow.id,
-        title: task.title,
-        taskType: task.taskType as "IT_ACCESS" | "HARDWARE" | "TRAINING" | "HR_ADMIN",
-        status: "PENDING" as const,
-        requiresApproval: task.requiresApproval,
-        approverEmail: task.approverEmail,
-        provisionEntraGroupOnComplete: task.provisionEntraGroupOnComplete,
-      }));
-      await db.insert(workflowTasks).values(tasksToInsert);
+    // Seed tasks from profile
+    if (request.profileId) {
+      const defaultTasks = await db.query.roleProfileTasks.findMany({
+        where: eq(roleProfiles.id, request.profileId)
+      });
+
+      for (const dt of defaultTasks) {
+        await db.insert(workflowTasks).values({
+          id: crypto.randomUUID(),
+          workflowId,
+          title: dt.title,
+          taskType: dt.taskType,
+          status: "PENDING",
+          requiresApproval: dt.requiresApproval,
+          approverEmail: dt.approverEmail,
+          provisionEntraGroupOnComplete: dt.provisionEntraGroupOnComplete
+        });
+      }
     }
 
     // ==========================================
-    // PHASE 5: SEND THE WELCOME EMAIL (With Password)
+    // PHASE 5: FINALIZE REQUEST
     // ==========================================
-    await resend.emails.send({
-      from: 'Harmony OP IT <onboarding@resend.dev>',
-      to: 'dpangione@online.gibz.ch',
-      subject: `Welcome to Harmony OP - Your IT Credentials`,
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-          <h2 style="color: #2563eb;">Welcome to the team, ${request.firstName}!</h2>
-          <p>Your Manager has approved your onboarding. IT has automatically generated your corporate Microsoft 365 credentials.</p>
-          
-          <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin: 20px 0;">
-            <p style="margin: 0 0 10px 0; font-size: 14px; color: #64748b;">CORPORATE EMAIL</p>
-            <p style="margin: 0 0 20px 0; font-size: 18px; font-weight: bold; color: #0f172a;">${userPrincipalName}</p>
-            
-            <p style="margin: 0 0 10px 0; font-size: 14px; color: #64748b;">TEMPORARY PASSWORD</p>
-            <p style="margin: 0; font-size: 18px; font-weight: bold; color: #0f172a; letter-spacing: 2px;">${tempPassword}</p>
-          </div>
-
-          <p>Please log in to <a href="https://office.com" style="color: #2563eb;">office.com</a>. You will be prompted to change this password immediately upon your first login.</p>
-          <p>Best regards,<br/><strong>Harmony OP Automated IT Systems</strong></p>
-        </div>
-      `
-    });
-
     await db.update(hireRequests)
       .set({ status: "PROVISIONED", updatedAt: new Date() })
-      .where(eq(hireRequests.id, requestId));
+      .where(eq(hireRequests.id, request.id));
 
     revalidatePath("/app/requests");
     return { success: true };
+
   } catch (error) {
-    console.error("Failed to approve request:", error);
-    return { error: error instanceof Error ? error.message : "Failed to provision user" };
+    console.error("Provisioning failed:", error);
+    return { error: error instanceof Error ? error.message : "Failed to provision user." };
   }
 }
 
 export async function rejectHireRequestAction(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
+
+  const dbUser = await db.query.users.findFirst({ where: eq(users.authId, user.id) });
+  if (!dbUser || dbUser.role === "EMPLOYEE") return { error: "Unauthorized" };
+
   const requestId = formData.get("requestId") as string;
-  if (!requestId) return { error: "Missing ID" };
+  if (!requestId) return { error: "Missing Request ID" };
 
   try {
     await db.update(hireRequests)
       .set({ status: "REJECTED", updatedAt: new Date() })
-      .where(eq(hireRequests.id, requestId));
+      .where(and(
+        eq(hireRequests.id, requestId),
+        eq(hireRequests.orgId, dbUser.orgId)
+      ));
 
     revalidatePath("/app/requests");
     return { success: true };

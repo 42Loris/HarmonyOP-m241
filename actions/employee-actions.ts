@@ -1,19 +1,37 @@
 "use server";
 
 import { db } from "@/db";
-import { onboardingWorkflows } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { onboardingWorkflows, users } from "@/db/schema";
+import { eq, and, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { createClient } from "@/utils/supabase/server";
 
 export async function toggleActionItemAction(workflowId: string, itemKey: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
+
+  const dbUser = await db.query.users.findFirst({ where: eq(users.authId, user.id) });
+  if (!dbUser) return { error: "User not found" };
+
   try {
-    // 1. Fetch current workflow
+    // 1. Fetch current workflow and verify authorization
+    // Authorization: User must be either the owner (newHireId) OR an Admin/HR in the same org
     const workflow = await db.query.onboardingWorkflows.findFirst({
-      where: eq(onboardingWorkflows.id, workflowId),
+      where: and(
+        eq(onboardingWorkflows.id, workflowId),
+        or(
+          eq(onboardingWorkflows.newHireId, dbUser.id),
+          and(
+            eq(onboardingWorkflows.orgId, dbUser.orgId),
+            or(eq(users.role, "ADMIN"), eq(users.role, "HR"))
+          )
+        )
+      ),
     });
 
     if (!workflow) {
-      throw new Error("Workflow not found");
+      return { error: "Workflow not found or access denied" };
     }
 
     // 2. Parse current completed items
