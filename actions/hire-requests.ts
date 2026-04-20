@@ -8,7 +8,8 @@ import {
   roleProfiles, 
   organizationIntegrations, 
   onboardingWorkflows, 
-  workflowTasks 
+  workflowTasks,
+  profileTasks
 } from "@/db/schema";
 import { createClient } from "@/utils/supabase/server";
 import { eq, and } from "drizzle-orm";
@@ -107,6 +108,7 @@ export async function createHireRequestAction(formData: FormData) {
 }
 
 export async function approveHireRequestAction(formData: FormData) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Unauthorized" };
@@ -197,22 +199,38 @@ export async function approveHireRequestAction(formData: FormData) {
     // ==========================================
     // PHASE 4: START INTERNAL WORKFLOW
     // ==========================================
+    // First, we must create/ensure the internal user exists in our DB
+    // Since Auth sync might not have run yet, we create it manually
+    const [newInternalUser] = await db.insert(users).values({
+      orgId: dbUser.orgId,
+      email: userPrincipalName,
+      name: `${request.firstName} ${request.lastName}`,
+      role: "EMPLOYEE",
+      department: request.department,
+    })
+    .onConflictDoUpdate({
+      target: users.email,
+      set: { 
+        name: `${request.firstName} ${request.lastName}`,
+        department: request.department 
+      }
+    })
+    .returning();
+
     const workflowId = crypto.randomUUID();
     await db.insert(onboardingWorkflows).values({
       id: workflowId,
       orgId: dbUser.orgId,
-      newHireId: null, // User doesn't exist in Supabase yet (handled by sync)
-      hireRequestId: request.id,
+      newHireId: newInternalUser.id,
       roleTitle: request.jobTitle,
       department: request.department,
-      startDate: new Date(), // Should ideally come from the request
-      status: "ACTIVE"
+      startDate: new Date(),
     });
 
     // Seed tasks from profile
     if (request.profileId) {
-      const defaultTasks = await db.query.roleProfileTasks.findMany({
-        where: eq(roleProfiles.id, request.profileId)
+      const defaultTasks = await db.query.profileTasks.findMany({
+        where: eq(profileTasks.profileId, request.profileId)
       });
 
       for (const dt of defaultTasks) {
@@ -220,7 +238,7 @@ export async function approveHireRequestAction(formData: FormData) {
           id: crypto.randomUUID(),
           workflowId,
           title: dt.title,
-          taskType: dt.taskType,
+          taskType: dt.taskType as "IT_ACCESS" | "HARDWARE" | "TRAINING" | "HR_ADMIN",
           status: "PENDING",
           requiresApproval: dt.requiresApproval,
           approverEmail: dt.approverEmail,
@@ -230,8 +248,31 @@ export async function approveHireRequestAction(formData: FormData) {
     }
 
     // ==========================================
-    // PHASE 5: FINALIZE REQUEST
+    // PHASE 5: SEND WELCOME EMAIL & FINALIZE
     // ==========================================
+    await resend.emails.send({
+      from: 'Harmony OP IT <onboarding@resend.dev>',
+      to: 'dpangione@online.gibz.ch',
+      subject: `Welcome to Harmony OP - Your IT Credentials`,
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+          <h2 style="color: #2563eb;">Welcome to the team, ${request.firstName}!</h2>
+          <p>Your Manager has approved your onboarding. IT has automatically generated your corporate Microsoft 365 credentials.</p>
+          
+          <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin: 20px 0;">
+            <p style="margin: 0 0 10px 0; font-size: 14px; color: #64748b;">CORPORATE EMAIL</p>
+            <p style="margin: 0 0 20px 0; font-size: 18px; font-weight: bold; color: #0f172a;">${userPrincipalName}</p>
+            
+            <p style="margin: 0 0 10px 0; font-size: 14px; color: #64748b;">TEMPORARY PASSWORD</p>
+            <p style="margin: 0; font-size: 18px; font-weight: bold; color: #0f172a; letter-spacing: 2px;">${tempPassword}</p>
+          </div>
+
+          <p>Please log in to <a href="https://office.com" style="color: #2563eb;">office.com</a>. You will be prompted to change this password immediately upon your first login.</p>
+          <p>Best regards,<br/><strong>Harmony OP Automated IT Systems</strong></p>
+        </div>
+      `
+    });
+
     await db.update(hireRequests)
       .set({ status: "PROVISIONED", updatedAt: new Date() })
       .where(eq(hireRequests.id, request.id));

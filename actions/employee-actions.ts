@@ -24,7 +24,7 @@ export async function toggleActionItemAction(workflowId: string, itemKey: string
           eq(onboardingWorkflows.newHireId, dbUser.id),
           and(
             eq(onboardingWorkflows.orgId, dbUser.orgId),
-            or(eq(users.role, "ADMIN"), eq(users.role, "HR"))
+            or(eq(users.role, "MANAGER"), eq(users.role, "HR"))
           )
         )
       ),
