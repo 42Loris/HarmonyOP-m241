@@ -37,12 +37,6 @@ export default function StepWelcome({
       exit={{ opacity: 0, y: -20 }}
       className="space-y-8"
     >
-      <div className="flex justify-end mb-2">
-        <button onClick={onNext} className="bg-slate-900 dark:bg-blue-600 text-white p-2 rounded-full hover:bg-slate-800 dark:hover:bg-blue-700 transition-colors shadow-md">
-          <ArrowRight className="h-6 w-6" />
-        </button>
-      </div>
-
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-900 dark:from-blue-700 dark:to-slate-900 text-white p-12 shadow-2xl border border-white/10 dark:border-white/5">
         <div className="relative z-10 max-w-2xl">
           <motion.div 
