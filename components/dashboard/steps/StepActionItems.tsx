@@ -71,17 +71,23 @@ export default function StepActionItems({
             {actionItems.map((item) => {
               const isCompleted = completedItems.includes(item.key);
               return (
-                <a
+                <div
                   key={item.key}
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-start gap-4 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 hover:bg-white dark:hover:bg-slate-900 hover:shadow-md transition-all group cursor-pointer"
+                  className="relative flex items-start gap-4 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 hover:bg-white dark:hover:bg-slate-900 hover:shadow-md transition-all group cursor-pointer"
                 >
+                  {/* Stretched link overlay — sits behind the checkbox button */}
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="absolute inset-0 rounded-2xl focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+                    aria-label={item.title}
+                  />
+
                   <button
                     disabled={loading === item.key}
-                    onClick={(e) => { e.preventDefault(); toggleChecklist(item.key); }}
-                    className="mt-1 focus:outline-none transition-transform active:scale-90 disabled:opacity-50"
+                    onClick={(e) => { e.stopPropagation(); toggleChecklist(item.key); }}
+                    className="relative z-10 mt-1 focus:outline-none transition-transform active:scale-90 disabled:opacity-50"
                   >
                     {loading === item.key ? (
                       <Loader2 className="h-6 w-6 text-indigo-500 dark:text-indigo-400 animate-spin" />
@@ -109,7 +115,7 @@ export default function StepActionItems({
                       {item.desc}
                     </p>
                   </div>
-                </a>
+                </div>
               );
             })}
           </div>

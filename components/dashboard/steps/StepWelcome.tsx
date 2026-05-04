@@ -65,7 +65,7 @@ export default function StepWelcome({
 
           <button 
             onClick={onNext}
-            className="group flex items-center gap-2 bg-green-500 hover:bg-green-400 text-white font-bold py-4 px-8 rounded-2xl shadow-lg transition-all active:scale-95"
+            className="group flex items-center gap-2 bg-green-500 dark:bg-green-600 hover:bg-green-600 dark:hover:bg-green-700 text-white font-bold py-4 px-8 rounded-2xl shadow-lg transition-all active:scale-95"
           >
             Start Onboarding
             <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
