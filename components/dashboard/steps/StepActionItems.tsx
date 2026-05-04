@@ -71,11 +71,23 @@ export default function StepActionItems({
             {actionItems.map((item) => {
               const isCompleted = completedItems.includes(item.key);
               return (
-                <div key={item.key} className="flex items-start gap-4 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 hover:bg-white dark:hover:bg-slate-900 hover:shadow-md transition-all group">
-                  <button 
+                <div
+                  key={item.key}
+                  className="relative flex items-start gap-4 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 hover:bg-white dark:hover:bg-slate-900 hover:shadow-md transition-all group cursor-pointer"
+                >
+                  {/* Stretched link overlay — sits behind the checkbox button */}
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="absolute inset-0 rounded-2xl focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+                    aria-label={item.title}
+                  />
+
+                  <button
                     disabled={loading === item.key}
-                    onClick={() => toggleChecklist(item.key)} 
-                    className="mt-1 focus:outline-none transition-transform active:scale-90 disabled:opacity-50"
+                    onClick={(e) => { e.stopPropagation(); toggleChecklist(item.key); }}
+                    className="relative z-10 mt-1 focus:outline-none transition-transform active:scale-90 disabled:opacity-50"
                   >
                     {loading === item.key ? (
                       <Loader2 className="h-6 w-6 text-indigo-500 dark:text-indigo-400 animate-spin" />
@@ -89,20 +101,15 @@ export default function StepActionItems({
                       </div>
                     )}
                   </button>
-                  
+
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <h4 className={`font-bold text-lg ${isCompleted ? 'text-slate-400 dark:text-slate-600 line-through' : 'text-slate-900 dark:text-slate-100'}`}>
                         {item.title}
                       </h4>
-                      <a 
-                        href={item.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 p-2 hover:bg-indigo-50 dark:hover:bg-indigo-950 rounded-full transition-colors"
-                      >
+                      <span className="text-indigo-600 dark:text-indigo-400 p-2 rounded-full transition-colors">
                         <ExternalLink className="h-4 w-4" />
-                      </a>
+                      </span>
                     </div>
                     <p className={`text-sm mt-1 ${isCompleted ? 'text-slate-400 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400'}`}>
                       {item.desc}
