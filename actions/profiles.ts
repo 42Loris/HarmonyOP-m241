@@ -42,6 +42,7 @@ export async function createProfileAction(
 
   const payload = {
     name: formData.get("name")?.toString() || "",
+    description: formData.get("description")?.toString() || "",
     department: formData.get("department")?.toString() || "",
   };
 
