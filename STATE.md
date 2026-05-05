@@ -21,3 +21,6 @@
 - [x] **Atomic Components:** Build optimistic `MarkDoneButton` for instant task resolution 🟢
 - [x] **Tech Debt Removal:** Delete `TaskBoard`, `TaskCard`, and legacy status logic 🟢
 **Status:** 100% Complete 🟢
+
+## Post-Mortem
+**V1 MVP:** Production outage resolved via MCP SQL injection due to Drizzle CLI parsing bug. Schema is now 100% synced.
