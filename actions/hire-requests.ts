@@ -18,6 +18,22 @@ import { revalidatePath } from "next/cache";
 import { Resend } from "resend";
 import { MicrosoftGraphService } from "@/lib/infrastructure/microsoft-graph";
 
+/**
+ * Creates a new pending hire request from a submitted form.
+ *
+ * This action parses the manager's form input, checks for required fields,
+ * and saves the request to the database. It then automatically dispatches
+ * an email via Resend to the IT/HR department for approval.
+ *
+ * @param formData - The submitted form data containing profileId, firstName, lastName, etc.
+ * @returns An object indicating success or a specific error message.
+ *
+ * @example
+ * ```ts
+ * const result = await createHireRequestAction(formData);
+ * if (result.error) console.error(result.error);
+ * ```
+ */
 export async function createHireRequestAction(formData: FormData) {
   const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -107,6 +123,23 @@ export async function createHireRequestAction(formData: FormData) {
   return { success: true };
 }
 
+/**
+ * Executes the "God-Mode" provisioning transaction for an approved hire request.
+ *
+ * This is the core engine of Harmony OP. It authenticates with Microsoft Graph,
+ * creates the user in Entra ID, assigns licenses and groups, seeds internal
+ * onboarding workflows, and emails the generated credentials.
+ *
+ * @param formData - The submitted form data containing the requestId.
+ * @returns An object indicating success or a specific error message.
+ * @throws {Error} If the Microsoft Graph API provisioning transaction fails.
+ *
+ * @example
+ * ```ts
+ * const result = await approveHireRequestAction(formData);
+ * if (result.success) revalidatePath('/app/requests');
+ * ```
+ */
 export async function approveHireRequestAction(formData: FormData) {
   const resend = new Resend(process.env.RESEND_API_KEY);
   const supabase = await createClient();
@@ -286,6 +319,15 @@ export async function approveHireRequestAction(formData: FormData) {
   }
 }
 
+/**
+ * Rejects a pending hire request.
+ *
+ * Sets the request status to 'REJECTED' in the database, preventing any
+ * automated provisioning from occurring.
+ *
+ * @param formData - The submitted form data containing the requestId to reject.
+ * @returns An object indicating success or an error message.
+ */
 export async function rejectHireRequestAction(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
