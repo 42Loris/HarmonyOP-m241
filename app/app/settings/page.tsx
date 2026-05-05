@@ -1,11 +1,12 @@
 // app/app/settings/page.tsx
 import { db } from "@/db";
 import { eq } from "drizzle-orm";
-import { users, organizationIntegrations } from "@/db/schema";
+import { users, organizationIntegrations, organizations } from "@/db/schema";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { Settings } from "lucide-react";
 import IntegrationForm from "./IntegrationForm";
+import OrganizationForm from "./OrganizationForm";
 import DangerZone from "./DangerZone";
 
 export default async function SettingsPage() {
@@ -18,6 +19,11 @@ export default async function SettingsPage() {
   });
   
   if (!dbUser || dbUser.role === "EMPLOYEE") redirect("/app/dashboard");
+
+  // Fetch the organization data
+  const orgData = await db.query.organizations.findFirst({
+    where: eq(organizations.id, dbUser.orgId)
+  });
 
   // Fetch the current integration data to pre-fill the form
   const integrationData = await db.query.organizationIntegrations.findFirst({
@@ -36,10 +42,13 @@ export default async function SettingsPage() {
         </p>
       </header>
 
-      {/* 1. The Microsoft Credentials Form */}
+      {/* 1. Company Description Form */}
+      <OrganizationForm initialData={orgData || null} />
+
+      {/* 2. The Microsoft Credentials Form */}
       <IntegrationForm initialData={integrationData || null} />
 
-      {/* 2. Your Factory Reset Button */}
+      {/* 3. Your Factory Reset Button */}
       <DangerZone />
 
     </div>

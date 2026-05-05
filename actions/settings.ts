@@ -2,10 +2,35 @@
 "use server";
 
 import { db } from "@/db";
-import { organizationIntegrations, users } from "@/db/schema";
+import { organizationIntegrations, users, organizations } from "@/db/schema";
 import { createClient } from "@/utils/supabase/server";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+
+export async function updateOrganizationAction(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
+
+  const dbUser = await db.query.users.findFirst({ where: eq(users.authId, user.id) });
+  if (!dbUser || dbUser.role === "EMPLOYEE") {
+    return { error: "Unauthorized access." };
+  }
+
+  const description = formData.get("description") as string;
+
+  try {
+    await db.update(organizations)
+      .set({ description })
+      .where(eq(organizations.id, dbUser.orgId));
+      
+    revalidatePath("/app/settings");
+    return { success: true };
+  } catch (error) {
+    console.error("Organization update failed:", error);
+    return { error: "Failed to save organization details." };
+  }
+}
 
 export async function updateMicrosoftIntegrationAction(formData: FormData) {
   const supabase = await createClient();

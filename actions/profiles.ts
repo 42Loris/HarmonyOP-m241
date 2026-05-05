@@ -17,6 +17,7 @@ export type ProfileFormState = {
 
 const ProfileSchema = z.object({
   name: z.string().min(2, "Profile name is required"),
+  description: z.string().optional(),
   department: z.string().min(2, "Department is required"),
 });
 
@@ -57,6 +58,7 @@ export async function createProfileAction(
     await db.insert(roleProfiles).values({
       orgId: hrUser.orgId,
       name: parsed.data.name,
+      description: parsed.data.description,
       department: parsed.data.department,
     });
 

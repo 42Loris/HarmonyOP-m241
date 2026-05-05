@@ -7,6 +7,7 @@ import { createClient } from "@/utils/supabase/server";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { Resend } from "resend"; // <--- NEW IMPORT
+import { randomBytes } from "crypto";
 import { MicrosoftGraphService } from "@/lib/infrastructure/microsoft-graph";
 
 export async function resetMicrosoftPasswordAction(employeeId: string) {

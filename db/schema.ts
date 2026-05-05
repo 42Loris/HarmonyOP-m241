@@ -12,6 +12,7 @@ export const requestStatusEnum = pgEnum("request_status", ["PENDING", "APPROVED"
 export const organizations = pgTable("organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -75,6 +76,7 @@ export const roleProfiles = pgTable("role_profiles", {
   id: uuid("id").primaryKey().defaultRandom(),
   orgId: uuid("org_id").notNull().references(() => organizations.id),
   name: text("name").notNull(), 
+  description: text("description"),
   department: text("department").notNull(), 
   entraGroupId: text("entra_group_id"), 
   

@@ -16,6 +16,7 @@ import { eq, and } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { Resend } from "resend";
+import { randomBytes } from "crypto";
 import { MicrosoftGraphService } from "@/lib/infrastructure/microsoft-graph";
 
 /**
