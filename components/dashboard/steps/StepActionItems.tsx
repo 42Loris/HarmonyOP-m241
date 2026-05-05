@@ -5,26 +5,31 @@ import { motion } from "framer-motion";
 import { CheckCircle2, Circle, BookOpen, ExternalLink, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
 import { toggleActionItemAction } from "@/actions/employee-actions";
 import { toast } from "sonner";
-import { onboardingWorkflows } from "@/db/schema";
+import { onboardingWorkflows, workflowTasks } from "@/db/schema";
 import { InferSelectModel } from "drizzle-orm";
 
 type Workflow = InferSelectModel<typeof onboardingWorkflows>;
+type Task = InferSelectModel<typeof workflowTasks>;
 
 export default function StepActionItems({ 
-  workflow, 
+  workflow,
+  tasks,
   onNext, 
   onBack 
 }: { 
-  workflow: Workflow, 
+  workflow: Workflow,
+  tasks: Task[],
   onNext: () => void, 
   onBack: () => void 
 }) {
   const [loading, setLoading] = useState<string | null>(null);
-  const completedItems = JSON.parse(workflow.completedActionItems || "[]");
+  
+  // Filter for employee-facing tasks
+  const actionItems = tasks.filter(t => t.taskType === "TRAINING" || t.taskType === "HR_ADMIN");
 
-  const toggleChecklist = async (itemKey: string) => {
-    setLoading(itemKey);
-    const result = await toggleActionItemAction(workflow.id, itemKey);
+  const toggleChecklist = async (taskId: string) => {
+    setLoading(taskId);
+    const result = await toggleActionItemAction(workflow.id, taskId);
     if (result.success) {
       toast.success("Progress saved!");
     } else {
@@ -32,12 +37,6 @@ export default function StepActionItems({
     }
     setLoading(null);
   };
-
-  const actionItems = [
-    { key: "login", title: "Log into Microsoft 365", desc: "Use your new email and temp password.", url: "https://www.office.com" },
-    { key: "mfa", title: "Set up Multi-Factor Auth", desc: "Required for all secure access.", url: "https://aka.ms/mfasetup" },
-    { key: "handbook", title: "Review Company Handbook", desc: "Available on the HR portal.", url: "https://sharepoint.com" },
-  ];
 
   return (
     <motion.div 
@@ -68,28 +67,19 @@ export default function StepActionItems({
           </p>
 
           <div className="space-y-6">
-            {actionItems.map((item) => {
-              const isCompleted = completedItems.includes(item.key);
+            {actionItems.length > 0 ? actionItems.map((item) => {
+              const isCompleted = item.status === "DONE";
               return (
                 <div
-                  key={item.key}
+                  key={item.id}
                   className="relative flex items-start gap-4 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 hover:bg-white dark:hover:bg-slate-900 hover:shadow-md transition-all group cursor-pointer"
                 >
-                  {/* Stretched link overlay — sits behind the checkbox button */}
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="absolute inset-0 rounded-2xl focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
-                    aria-label={item.title}
-                  />
-
                   <button
-                    disabled={loading === item.key}
-                    onClick={(e) => { e.stopPropagation(); toggleChecklist(item.key); }}
+                    disabled={loading === item.id}
+                    onClick={(e) => { e.stopPropagation(); toggleChecklist(item.id); }}
                     className="relative z-10 mt-1 focus:outline-none transition-transform active:scale-90 disabled:opacity-50"
                   >
-                    {loading === item.key ? (
+                    {loading === item.id ? (
                       <Loader2 className="h-6 w-6 text-indigo-500 dark:text-indigo-400 animate-spin" />
                     ) : isCompleted ? (
                       <div className="bg-green-100 dark:bg-green-900/30 p-1.5 rounded-lg text-green-700 dark:text-green-400">
@@ -107,17 +97,17 @@ export default function StepActionItems({
                       <h4 className={`font-bold text-lg ${isCompleted ? 'text-slate-400 dark:text-slate-600 line-through' : 'text-slate-900 dark:text-slate-100'}`}>
                         {item.title}
                       </h4>
-                      <span className="text-indigo-600 dark:text-indigo-400 p-2 rounded-full transition-colors">
-                        <ExternalLink className="h-4 w-4" />
-                      </span>
                     </div>
+                    {/* The task description feature will be added here in the future once we add it to the schema */}
                     <p className={`text-sm mt-1 ${isCompleted ? 'text-slate-400 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400'}`}>
-                      {item.desc}
+                      {item.taskType === "TRAINING" ? "Training / Documentation" : "HR / Admin Task"}
                     </p>
                   </div>
                 </div>
               );
-            })}
+            }) : (
+              <p className="text-slate-500 dark:text-slate-400 italic text-center">No action items assigned.</p>
+            )}
           </div>
         </div>
 
