@@ -1,0 +1,15 @@
+# Architecture Decision Records & Technical Hurdles
+
+**BLUF:** Harmony OP’s architecture prioritizes execution velocity, strong type safety, and strict multi-tenant isolation. During development, critical roadblocks forced us to adapt our tooling and feature scope to ensure a stable, production-ready MVP.
+
+## 1. Overcoming the Drizzle ORM Schema Parsing Limitation
+**Challenge:** During rapid database iteration, we encountered a severe parsing limitation within Drizzle ORM (`drizzle-kit push`). Complex relational changes and cascading foreign keys occasionally caused the migration engine to lock up or generate invalid SQL, stalling development and risking database corruption.
+**Solution:** Rather than fighting the ORM’s migration engine, we bypassed it for complex structural changes. We utilized the Supabase Model Context Protocol (MCP) server to execute raw, direct SQL injections against the PostgreSQL database. This allowed us to forcefully update the schema definitions, after which we synced Drizzle back to the truth source. This hybrid approach ensured we maintained Drizzle’s excellent application-layer type safety while leveraging direct SQL for robust database administration.
+
+## 2. Resolving the Microsoft Graph API "Ghost Token" Race Condition
+**Challenge:** During the automated offboarding workflow, the system must revoke access, block sign-ins, and clear sessions via the Microsoft Graph API. We experienced a race condition where Azure AD's eventual consistency model caused a "Ghost Token" effect—the user appeared disabled in our database, but their existing Microsoft 365 token remained briefly valid, potentially allowing unauthorized access post-termination.
+**Solution:** We re-engineered the offboarding Server Action to strictly enforce a multi-step revocation sequence. We implemented immediate continuous access evaluation (CAE) triggers and explicitly invoked the `revokeSignInSessions` Graph API endpoint *before* disabling the account profile. This forced an immediate cache invalidation across the Microsoft tenant, eliminating the race condition and ensuring instantaneous access revocation.
+
+## 3. Pivoting from Kanban to "Inbox Zero" for Task Management
+**Challenge:** The initial design for Phase 3 (IT/HR Mission Control) heavily featured a drag-and-drop Kanban board with complex "Urgency Math." However, managing complex client-side state, drag events, and real-time database syncing introduced significant overhead that threatened our MVP delivery timeline.
+**Solution:** We made a strategic architectural pivot, ripping out the Kanban implementation in favor of an "Inbox Zero" methodology. We replaced the board with a high-performance, strictly typed Next.js Server Component table. This drastically reduced client-side JavaScript, simplified the data fetching architecture (leveraging React 19 `<Suspense>`), and ultimately provided HR and IT with a faster, more reliable interface for clearing pending tasks, aligning perfectly with our velocity goals.
