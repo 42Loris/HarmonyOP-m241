@@ -162,9 +162,11 @@ export const organizationIntegrations = pgTable("organization_integrations", {
 
 // Audit Logs
 export const auditLogs = pgTable("audit_logs", {
-  id: uuid("id").primaryKey().notNull(),
+  id: uuid("id").primaryKey().defaultRandom(),
   orgId: uuid("org_id").notNull(),
+  actorId: uuid("actor_id"),
   actorName: text("actor_name").notNull(), 
+  targetId: uuid("target_id"),
   actionType: text("action_type").notNull(), 
   description: text("description").notNull(), 
   createdAt: timestamp("created_at").defaultNow().notNull(),

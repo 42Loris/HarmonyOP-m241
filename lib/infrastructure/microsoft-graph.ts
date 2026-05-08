@@ -198,23 +198,25 @@ export class MicrosoftGraphService {
   }
 
   /**
-   * Disables a user account and revokes active sessions.
+   * Disables a user account.
    */
-  async offboardUser(email: string): Promise<void> {
-    const headers = await this.getHeaders();
-    
-    // 1. Disable account
-    await fetch(`${this.baseUrl}/users/${email}`, {
-      method: "PATCH",
-      headers,
-      body: JSON.stringify({ accountEnabled: false }),
-    });
+  async disableUser(userIdOrEmail: string): Promise<void> {
+    await this.patchUser(userIdOrEmail, { accountEnabled: false });
+  }
 
-    // 2. Revoke sessions
-    await fetch(`${this.baseUrl}/users/${email}/revokeSignInSessions`, {
+  /**
+   * Revokes active sessions for a user.
+   */
+  async revokeSessions(userIdOrEmail: string): Promise<void> {
+    const headers = await this.getHeaders();
+    const res = await fetch(`${this.baseUrl}/users/${userIdOrEmail}/revokeSignInSessions`, {
       method: "POST",
       headers,
     });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(`Microsoft Graph Session Revocation Failed: ${err.error?.message || res.statusText}`);
+    }
   }
 
   /**
