@@ -4,55 +4,7 @@
 
 ## High-Level Data Flow
 
-```mermaid
-graph TD
-    %% Actors
-    HR[HR Manager]
-    IT[IT Admin]
-    NH[New Hire]
-
-    %% Front-End
-    subgraph "Next.js App Router (Client & Server Components)"
-        UI_Req[Hire Request Form]
-        UI_Dash[IT/HR Task Dashboard]
-        UI_Onb[Onboarding Wizard]
-    end
-
-    %% Backend/Server Actions
-    subgraph "Next.js Server Actions (The Backend)"
-        SA_Hire[actions/hire-requests.ts]
-        SA_Task[actions/tasks.ts]
-    end
-
-    %% Integrations
-    subgraph "External Integrations"
-        MSGraph[Microsoft Graph API / Entra ID]
-        Resend[Resend Email API]
-    end
-
-    %% Database
-    subgraph "Supabase / PostgreSQL"
-        DB_Req[(Hire Requests)]
-        DB_WF[(Onboarding Workflows)]
-        DB_Task[(Workflow Tasks)]
-        DB_User[(Users & Orgs)]
-    end
-
-    %% Interactions
-    HR -->|1. Submits| UI_Req
-    UI_Req -->|2. POST formData| SA_Hire
-    SA_Hire -->|3. Validates & Writes| DB_Req
-    
-    IT -->|4. Approves Request| SA_Hire
-    SA_Hire -->|5. Authenticates & Creates User| MSGraph
-    SA_Hire -->|6. Generates Password & Emails| Resend
-    SA_Hire -->|7. Seeds Tasks from Profile| DB_Task
-    SA_Hire -->|8. Creates Active Workflow| DB_WF
-    
-    NH -->|9. Logs In via Supabase Auth| UI_Onb
-    UI_Onb -->|10. Reads Status| DB_WF
-    UI_Dash -->|11. Reads/Updates| DB_Task
-```
+![System Architecture](./mermaid-diagram-2026-05-08T19-12-51.png)
 
 ## Security & Multi-Tenancy
 
