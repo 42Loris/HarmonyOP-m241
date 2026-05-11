@@ -69,7 +69,7 @@ export default function EmployeeDashboard({
       case 1:
         return <StepITTimeline tasks={tasks} workflow={workflow} onNext={() => setCurrentStep(2)} onBack={() => setCurrentStep(0)} />;
       case 2:
-        return <StepActionItems workflow={workflow} onNext={() => setCurrentStep(3)} onBack={() => setCurrentStep(1)} />;
+        return <StepActionItems workflow={workflow} tasks={tasks} onNext={() => setCurrentStep(3)} onBack={() => setCurrentStep(1)} />;
       case 3:
         return <StepTeamResources user={user} onBack={() => setCurrentStep(2)} />;
       default:

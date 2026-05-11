@@ -15,6 +15,20 @@
       "when": 1776621328671,
       "tag": "0001_condemned_giant_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778005437621,
+      "tag": "0002_glorious_carmella_unuscione",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1778005478520,
+      "tag": "0003_certain_moira_mactaggert",
+      "breakpoints": true
     }
   ]
 }

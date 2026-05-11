@@ -1,45 +1,95 @@
-// app/app/directory/OffboardButton.tsx
 "use client";
 
 import { useState } from "react";
+import { AlertTriangle, UserX, Loader2 } from "lucide-react";
 import { offboardEmployeeAction } from "@/actions/offboard";
-import { UserMinus, Loader2 } from "lucide-react";
-import { toast } from "sonner"; // <-- NEW IMPORT
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function OffboardButton({ employeeId, employeeName }: { employeeId: string, employeeName: string }) {
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleOffboard = async () => {
-    const confirmText = `DANGER: You are about to terminate ${employeeName}.\n\nThis will instantly disable their Microsoft 365 account, revoke their active login sessions, and generate exit tasks for IT and HR.\n\nAre you absolutely sure?`;
-    
-    if (!window.confirm(confirmText)) return;
+    if (confirmText !== employeeName) return;
 
-    setIsProcessing(true);
-    
-    // We can trigger a "loading" toast while the API does its work!
-    const toastId = toast.loading(`Terminating access for ${employeeName}...`);
-    
-    const res = await offboardEmployeeAction(employeeId);
-    setIsProcessing(false);
+    setLoading(true);
+    const res = await offboardEmployeeAction(employeeId, confirmText);
+    setLoading(false);
 
-    if (res?.error) {
-      toast.error("Failed to offboard", { id: toastId, description: res.error });
+    if (!res.success) {
+      toast.error(res.error || "Failed to offboard employee");
     } else {
-      toast.success("Access Revoked", { 
-        id: toastId, 
-        description: `${employeeName} has been successfully locked out of the tenant.` 
-      });
+      toast.success("Employee successfully offboarded.");
+      if (res.warning) {
+        toast.warning(res.warning);
+      }
+      setOpen(false);
     }
   };
 
   return (
-    <button
-      onClick={handleOffboard}
-      disabled={isProcessing}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
-    >
-      {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserMinus className="h-4 w-4" />}
-      {isProcessing ? "Terminating..." : "Terminate Access"}
-    </button>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      setOpen(isOpen);
+      if (!isOpen) setConfirmText("");
+    }}>
+      <DialogTrigger asChild>
+        <Button variant="destructive" className="flex items-center gap-2">
+          <UserX className="h-4 w-4" />
+          Offboard Employee
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-red-600">
+            <AlertTriangle className="h-5 w-5" />
+            Danger Zone
+          </DialogTitle>
+          <DialogDescription className="text-slate-600 dark:text-slate-400 mt-2">
+            This action will immediately disable <strong>{employeeName}</strong> in Microsoft Entra ID, revoke their active sign-in sessions, and generate a task for IT to convert their mailbox. 
+            <br /><br />
+            This cannot be easily undone.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="py-4">
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-2">
+            Please type <strong>{employeeName}</strong> to confirm.
+          </label>
+          <Input 
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            placeholder={employeeName}
+            className="w-full"
+          />
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={loading}>
+            Cancel
+          </Button>
+          <Button 
+            variant="destructive" 
+            onClick={handleOffboard} 
+            disabled={loading || confirmText !== employeeName}
+            className="flex items-center gap-2"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserX className="h-4 w-4" />}
+            Terminate
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
