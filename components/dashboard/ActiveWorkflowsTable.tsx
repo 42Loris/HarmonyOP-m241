@@ -28,9 +28,9 @@ export default function ActiveWorkflowsTable({ data }: { data: WorkflowData[] })
 
   const getCustomBadgeClass = (status: TaskStatus) => {
     switch (status) {
-      case "DONE": return "bg-green-100 text-green-800 hover:bg-green-100 border-green-200";
-      case "IN_PROGRESS": return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200";
-      case "BLOCKED": return "bg-red-100 text-red-800 hover:bg-red-100 border-red-200";
+      case "DONE": return "bg-green-100 text-green-800 hover:bg-green-100 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/30 dark:border-green-800";
+      case "IN_PROGRESS": return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:hover:bg-yellow-900/30 dark:border-yellow-800";
+      case "BLOCKED": return "bg-red-100 text-red-800 hover:bg-red-100 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/30 dark:border-red-800";
       default: return "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700";
     }
   };

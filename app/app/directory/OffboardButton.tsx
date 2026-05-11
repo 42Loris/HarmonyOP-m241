@@ -40,7 +40,6 @@ export default function OffboardButton({ employeeId, employeeName }: { employeeI
   };
 
   return (
-<<<<<<< HEAD
     <Dialog open={open} onOpenChange={(isOpen) => {
       setOpen(isOpen);
       if (!isOpen) setConfirmText("");
@@ -58,7 +57,7 @@ export default function OffboardButton({ employeeId, employeeName }: { employeeI
             Danger Zone
           </DialogTitle>
           <DialogDescription className="text-slate-600 dark:text-slate-400 mt-2">
-            This action will immediately disable <strong>{employeeName}</strong> in Microsoft Entra ID, revoke their active sign-in sessions, and generate a task for IT to convert their mailbox. 
+            This action will immediately disable <strong>{employeeName}</strong> in Microsoft Entra ID, revoke their active sign-in sessions, and generate a task for IT to convert their mailbox.
             <br /><br />
             This cannot be easily undone.
           </DialogDescription>
@@ -68,7 +67,7 @@ export default function OffboardButton({ employeeId, employeeName }: { employeeI
           <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-2">
             Please type <strong>{employeeName}</strong> to confirm.
           </label>
-          <Input 
+          <Input
             value={confirmText}
             onChange={(e) => setConfirmText(e.target.value)}
             placeholder={employeeName}
@@ -80,9 +79,9 @@ export default function OffboardButton({ employeeId, employeeName }: { employeeI
           <Button variant="outline" onClick={() => setOpen(false)} disabled={loading}>
             Cancel
           </Button>
-          <Button 
-            variant="destructive" 
-            onClick={handleOffboard} 
+          <Button
+            variant="destructive"
+            onClick={handleOffboard}
             disabled={loading || confirmText !== employeeName}
             className="flex items-center gap-2"
           >
@@ -92,15 +91,5 @@ export default function OffboardButton({ employeeId, employeeName }: { employeeI
         </DialogFooter>
       </DialogContent>
     </Dialog>
-=======
-    <button
-      onClick={handleOffboard}
-      disabled={isProcessing}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/50 text-red-600 hover:bg-red-50 hover:border-red-300 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
-    >
-      {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserMinus className="h-4 w-4" />}
-      {isProcessing ? "Terminating..." : "Terminate Access"}
-    </button>
->>>>>>> 76c718a (Improving Dark Mode)
   );
 }

@@ -39,7 +39,6 @@ export default async function TasksPage() {
   }).filter(workflow => workflow.pendingTasks.length > 0);
 
   return (
-<<<<<<< HEAD
     <div className="p-8 max-w-5xl mx-auto min-h-screen space-y-8 animate-in fade-in duration-500">
       <header className="mb-2 border-b border-slate-200 dark:border-slate-800 pb-6">
         <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-3">
@@ -48,13 +47,6 @@ export default async function TasksPage() {
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
           Manage hardware provisioning and IT access for new hires.
-=======
-    <div className="p-8 max-w-7xl mx-auto min-h-screen">
-      <header className="mb-2">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">IT Provisioning Tasks</h1>
-        <p className="text-sm text-slate-500 mt-2">
-          Manage AD accounts, permissions, and hardware preparation.
->>>>>>> 76c718a (Improving Dark Mode)
         </p>
       </header>
 
