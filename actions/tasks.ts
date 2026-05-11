@@ -8,7 +8,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { calculateProgressRatio } from "@/lib/utils";
 
-export async function updateTaskStatus(taskId: string, newStatus: "PENDING" | "DONE") {
+export async function updateTaskStatus(taskId: string, newStatus: "PENDING" | "IN_PROGRESS" | "BLOCKED" | "DONE") {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Unauthorized" };
