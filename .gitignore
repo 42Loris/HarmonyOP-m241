@@ -58,3 +58,6 @@ SystemArchitecture.md
 # Next.js & Node
 node_modules/
 .next/
+
+#docs
+Shared_Files/
