@@ -84,13 +84,13 @@ export default async function NewHireRequestPage() {
   return (
     <div className="p-8 max-w-3xl mx-auto min-h-screen">
       <div className="mb-6">
-        <Link href="/app/dashboard" className="text-sm text-slate-500 hover:text-slate-800 flex items-center gap-2 w-fit">
+        <Link href="/app/dashboard" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-2 w-fit">
           <ArrowLeft className="h-4 w-4" /> Back to Dashboard
         </Link>
       </div>
 
-      <header className="mb-8 border-b border-slate-200 pb-6">
-        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+      <header className="mb-8 border-b border-slate-200 dark:border-slate-800 pb-6">
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-3">
           <UserPlus className="h-8 w-8 text-blue-600" />
           Request New Hire
         </h1>
@@ -101,10 +101,10 @@ export default async function NewHireRequestPage() {
 
       {/* 3. THE SUSPENSE BOUNDARY */}
       <Suspense fallback={
-        <div className="flex flex-col items-center justify-center p-12 bg-white rounded-xl border border-slate-200 shadow-sm mt-8">
+        <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm mt-8">
           <Loader2 className="h-10 w-10 text-blue-600 animate-spin mb-4" />
-          <p className="text-base text-slate-900 font-semibold">Connecting to Microsoft Graph...</p>
-          <p className="text-sm text-slate-500 mt-1">Fetching live licenses and groups from your tenant.</p>
+          <p className="text-base text-slate-900 dark:text-slate-100 font-semibold">Connecting to Microsoft Graph...</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Fetching live licenses and groups from your tenant.</p>
         </div>
       }>
         <AsyncMicrosoftForm profiles={profiles} orgId={dbUser!.orgId} />

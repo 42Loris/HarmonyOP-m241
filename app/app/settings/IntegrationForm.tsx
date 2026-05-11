@@ -26,10 +26,10 @@ export default function IntegrationForm({ initialData }: { initialData: { tenant
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
+      <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-blue-600" />
             Microsoft Entra ID Connection
           </h2>
@@ -113,7 +113,7 @@ export default function IntegrationForm({ initialData }: { initialData: { tenant
         </div>
       </div>
 
-      <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end">
+      <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex justify-end">
         <button 
           type="submit" 
           disabled={isLoading}

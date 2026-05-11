@@ -48,8 +48,8 @@ export default function HardwareProcurementForm({ profileId }: HardwareProcureme
   };
 
   return (
-    <div className="bg-slate-50 border border-slate-200 rounded-lg p-5">
-      <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+    <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-5">
+      <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
         <ShoppingCart className="h-4 w-4" /> Add Hardware Requirement
       </h3>
       <form 
@@ -68,8 +68,8 @@ export default function HardwareProcurementForm({ profileId }: HardwareProcureme
         <input type="hidden" name="price" value={scrapedData?.price?.toString() || ""} />
 
         <div>
-          <label className="block text-xs font-medium text-slate-700 mb-1">Category</label>
-          <select name="category" required className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white">
+          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Category</label>
+          <select name="category" required className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white dark:bg-slate-900 dark:border-slate-700">
             {CATEGORIES.map(cat => (
               <option key={cat.value} value={cat.value}>{cat.label}</option>
             ))}
@@ -77,7 +77,7 @@ export default function HardwareProcurementForm({ profileId }: HardwareProcureme
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-700 mb-1">Product URL (Digitec, etc.)</label>
+          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Product URL (Digitec, etc.)</label>
           <div className="relative">
             <input 
               type="url" 
@@ -97,8 +97,8 @@ export default function HardwareProcurementForm({ profileId }: HardwareProcureme
         </div>
 
         {scrapedData && (
-          <div className="bg-white border border-slate-200 rounded-md p-3 space-y-1 animate-in fade-in slide-in-from-top-2 duration-300">
-            <p className="text-xs font-bold text-slate-900 line-clamp-1">{scrapedData.title}</p>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-3 space-y-1 animate-in fade-in slide-in-from-top-2 duration-300">
+            <p className="text-xs font-bold text-slate-900 dark:text-slate-100 line-clamp-1">{scrapedData.title}</p>
             <p className="text-sm font-bold text-blue-600">Estimated Price: CHF {scrapedData.price.toFixed(2)}</p>
           </div>
         )}

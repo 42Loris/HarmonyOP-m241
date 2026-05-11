@@ -57,8 +57,8 @@ export default function ResetPasswordButton({
           <p className="text-xs text-green-700 mb-3 font-medium">
             The temporary credentials have been securely emailed to the user.
           </p>
-          <div className="bg-white p-3 rounded border border-green-100 flex items-center justify-between">
-            <code className="text-lg font-mono font-bold tracking-widest text-slate-800">
+          <div className="bg-white dark:bg-slate-900 p-3 rounded border border-green-100 flex items-center justify-between">
+            <code className="text-lg font-mono font-bold tracking-widest text-slate-800 dark:text-slate-200">
               {newPassword}
             </code>
           </div>

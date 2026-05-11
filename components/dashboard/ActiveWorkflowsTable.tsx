@@ -31,14 +31,14 @@ export default function ActiveWorkflowsTable({ data }: { data: WorkflowData[] })
       case "DONE": return "bg-green-100 text-green-800 hover:bg-green-100 border-green-200";
       case "IN_PROGRESS": return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200";
       case "BLOCKED": return "bg-red-100 text-red-800 hover:bg-red-100 border-red-200";
-      default: return "bg-slate-100 text-slate-800 hover:bg-slate-100 border-slate-200";
+      default: return "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700";
     }
   };
 
   return (
-    <div className="rounded-md border bg-white">
+    <div className="rounded-md border bg-white dark:bg-slate-900">
       <Table>
-        <TableHeader className="bg-slate-50">
+        <TableHeader className="bg-slate-50 dark:bg-slate-950">
           <TableRow>
             <TableHead className="font-medium">Employee Name</TableHead>
             <TableHead className="font-medium">Role</TableHead>

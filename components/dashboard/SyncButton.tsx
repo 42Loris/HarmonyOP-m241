@@ -32,7 +32,7 @@ export default function SyncButton() {
     <button 
       onClick={handleSync}
       disabled={isSyncing}
-      className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
+      className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
     >
       <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin text-blue-600" : "text-slate-400"}`} />
       {isSyncing ? "Syncing with Entra ID..." : "Sync Directory Now"}

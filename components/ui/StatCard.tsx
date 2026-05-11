@@ -17,7 +17,7 @@ export function StatCard({ title, value, icon, trend }: StatCardProps) {
         {icon && <div className="text-slate-400">{icon}</div>}
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-slate-900">{value}</div>
+        <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">{value}</div>
         {trend && <p className="text-xs text-slate-500 mt-1">{trend}</p>}
       </CardContent>
     </Card>

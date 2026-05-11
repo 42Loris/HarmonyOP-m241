@@ -31,18 +31,18 @@ export default async function IntegrationsPage() {
   return (
     <div className="p-8 max-w-4xl mx-auto min-h-screen">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Integrations</h1>
-        <p className="text-sm text-slate-500 mt-1">Connect Harmony OP with your company&apos;s existing tools.</p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Integrations</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Connect Harmony OP with your company&apos;s existing tools.</p>
       </header>
 
       <div className="grid gap-6">
-        <Card className="border-slate-200 shadow-sm overflow-hidden">
-          <div className="bg-blue-50/50 border-b border-slate-100 p-6 flex items-start gap-4">
-            <div className="p-3 bg-white rounded-lg shadow-sm border border-slate-200">
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="bg-blue-50/50 border-b border-slate-100 dark:border-slate-800 p-6 flex items-start gap-4">
+            <div className="p-3 bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
               <Server className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">Microsoft Entra ID (Active Directory)</h2>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Microsoft Entra ID (Active Directory)</h2>
               <p className="text-sm text-slate-600 mt-1">
                 Automatically sync new hires, assign them to Microsoft Groups, and trigger onboarding workflows the moment an IT Admin creates their account.
               </p>

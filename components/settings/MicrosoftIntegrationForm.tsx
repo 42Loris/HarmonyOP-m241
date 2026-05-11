@@ -40,7 +40,7 @@ export default function MicrosoftIntegrationForm({ isConnected }: { isConnected:
 
   return (
     <form action={formAction} className="space-y-5">
-      <div className="bg-slate-50 border border-slate-200 rounded-md p-4 mb-6 flex gap-3 items-start">
+      <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md p-4 mb-6 flex gap-3 items-start">
         <ShieldCheck className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
         <div className="text-sm text-slate-700">
           <strong>Secure Connection:</strong> Your API keys are securely stored. We only request permission to read user directories and manage groups.
@@ -67,7 +67,7 @@ export default function MicrosoftIntegrationForm({ isConnected }: { isConnected:
       )}
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+        <label className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
           <Key className="h-4 w-4 text-slate-400" /> Tenant ID
         </label>
         <input 
@@ -80,7 +80,7 @@ export default function MicrosoftIntegrationForm({ isConnected }: { isConnected:
       </div>
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+        <label className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
           <Key className="h-4 w-4 text-slate-400" /> Client ID (Application ID)
         </label>
         <input 
@@ -93,7 +93,7 @@ export default function MicrosoftIntegrationForm({ isConnected }: { isConnected:
       </div>
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+        <label className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
           <Key className="h-4 w-4 text-slate-400" /> Client Secret
         </label>
         <input 
